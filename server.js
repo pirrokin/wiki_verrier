@@ -58,6 +58,27 @@ app.post('/api/login', (req, res) => {
     });
 });
 
+// Create User Endpoint
+app.post('/api/users', (req, res) => {
+    const { username, password, role } = req.body;
+
+    if (!username || !password || !role) {
+        return res.status(400).json({ success: false, message: 'Tous les champs sont requis' });
+    }
+
+    const query = 'INSERT INTO users (username, password, role) VALUES (?, ?, ?)';
+    db.query(query, [username, password, role], (err, result) => {
+        if (err) {
+            console.error(err);
+            if (err.code === 'ER_DUP_ENTRY') {
+                return res.status(400).json({ success: false, message: 'Cet identifiant existe déjà' });
+            }
+            return res.status(500).json({ success: false, message: 'Erreur base de données' });
+        }
+        res.json({ success: true, message: 'Utilisateur créé avec succès' });
+    });
+});
+
 // Start Server
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);

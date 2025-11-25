@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adminterface - Technician Wiki</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">Technician Wiki</div>
+        <div class="nav-links">
+            <button class="nav-btn" onclick="window.location.href='admin.html'">Accueil</button>
+            <button class="nav-btn">PDMS</button>
+            <button class="nav-btn">Documentation</button>
+            <button class="nav-btn active" onclick="window.location.href='admin_interface.html'">Adminterface</button>
+            <button class="nav-btn">Votre Espace</button>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <div class="welcome-section">
+            <h1 class="welcome-title">Gestion des Utilisateurs</h1>
+            <p class="welcome-subtitle">Ajoutez ou modifiez les accès</p>
+        </div>
+
+        <!-- User Management Form will go here -->
+        <div class="login-card" style="margin: 0 auto;">
+            <h2>Ajouter un utilisateur</h2>
+            <form id="addUserForm">
+                <div class="input-group">
+                    <label for="newUsername">Identifiant</label>
+                    <input type="text" id="newUsername" name="newUsername" required placeholder="Nouvel identifiant">
+                </div>
+
+                <div class="input-group">
+                    <label for="newPassword">Mot de passe</label>
+                    <input type="password" id="newPassword" name="newPassword" required placeholder="Mot de passe">
+                </div>
+
+                <div class="input-group">
+                    <label for="newRole">Rôle</label>
+                    <select id="newRole" name="newRole"
+                        style="width: 100%; padding: 12px; background-color: var(--input-bg); border: 1px solid var(--input-border); color: white; border-radius: 8px;">
+                        <option value="technician">Technicien</option>
+                        <option value="admin">Administrateur</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-login">Créer l'utilisateur</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Retrieve username from localStorage
+        const username = localStorage.getItem('username');
+        if (!username) {
+            window.location.href = 'index.html';
+        }
+
+        // Handle Add User Form
+        document.getElementById('addUserForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const newUsername = document.getElementById('newUsername').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const newRole = document.getElementById('newRole').value;
+            const btn = e.target.querySelector('button');
+            const originalText = btn.innerText;
+
+            btn.innerText = 'Création...';
+
+            fetch('/api/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: newUsername, password: newPassword, role: newRole })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Utilisateur créé avec succès !');
+                        e.target.reset();
+                    } else {
+                        alert('Erreur : ' + data.message);
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Erreur technique');
+                })
+                .finally(() => {
+                    btn.innerText = originalText;
+                });
+        });
+    </script>
+</body>
+
+</html>

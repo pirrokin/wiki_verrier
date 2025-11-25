@@ -27,6 +27,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     btn.innerText = 'Succès !';
                     btn.style.backgroundColor = '#00c853'; // Green
 
+                    // Store user info
+                    localStorage.setItem('username', data.user.username);
+
                     setTimeout(() => {
                         // Redirect based on role
                         if (data.user.role === 'admin') {

@@ -5,27 +5,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Technicien - Technician Wiki</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            background-color: #121212;
-            color: #ffffff;
-            font-family: 'Inter', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-
-        h1 {
-            color: #a0a0a0;
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
-    <h1>Vous n'êtes pas admin</h1>
+    <nav class="navbar">
+        <div class="nav-brand">Technician Wiki</div>
+        <div class="nav-links">
+            <button class="nav-btn active">Accueil</button>
+            <button class="nav-btn">PDMS</button>
+            <button class="nav-btn">Documentation</button>
+            <button class="nav-btn">Votre Espace</button>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <div class="welcome-section">
+            <h1 class="welcome-title">Bienvenue <span id="usernameDisplay">...</span> !</h1>
+            <p class="welcome-subtitle">Espace Technicien</p>
+        </div>
+    </div>
+
+    <script>
+        // Retrieve username from localStorage
+        const username = localStorage.getItem('username');
+        if (username) {
+            document.getElementById('usernameDisplay').innerText = username;
+        } else {
+            // If no user found, redirect to login
+            window.location.href = 'index.html';
+        }
+    </script>
 </body>
 
 </html>

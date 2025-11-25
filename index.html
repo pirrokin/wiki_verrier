@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - Technician Wiki</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="logo-placeholder">
+                <!-- Logo will go here later -->
+                <div class="logo-circle"></div>
+            </div>
+            <h1>Connexion</h1>
+            <p class="subtitle">Accédez à votre espace</p>
+
+            <form id="loginForm">
+                <div class="input-group">
+                    <label for="username">Identifiant</label>
+                    <input type="text" id="username" name="username" required placeholder="Votre identifiant">
+                </div>
+
+                <div class="input-group">
+                    <label for="password">Mot de passe</label>
+                    <input type="password" id="password" name="password" required placeholder="Votre mot de passe">
+                </div>
+
+                <button type="submit" class="btn-login">Se connecter</button>
+            </form>
+        </div>
+    </div>
+    <script src="js/login.js"></script>
+</body>
+
+</html>

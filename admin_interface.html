@@ -43,7 +43,7 @@
             <h2>Ajouter un utilisateur</h2>
             <p class="subtitle" style="margin-bottom: 20px;">Créez un nouvel accès pour l'équipe</p>
 
-            <form id="addUserForm">
+            <form id="addUserForm" autocomplete="off">
                 <div class="input-group">
                     <label for="newUsername">Identifiant</label>
                     <input type="text" id="newUsername" name="newUsername" required placeholder="Nouvel identifiant">
@@ -51,13 +51,14 @@
 
                 <div class="input-group">
                     <label for="newPassword">Mot de passe</label>
-                    <input type="password" id="newPassword" name="newPassword" required placeholder="Mot de passe">
+                    <input type="password" id="newPassword" name="newPassword" required placeholder="Mot de passe"
+                        autocomplete="new-password">
                 </div>
 
                 <div class="input-group">
                     <label for="confirmPassword">Confirmer le mot de passe</label>
                     <input type="password" id="confirmPassword" name="confirmPassword" required
-                        placeholder="Répétez le mot de passe">
+                        placeholder="Répétez le mot de passe" autocomplete="new-password">
                     <p id="passwordError"
                         style="color: var(--error-color); font-size: 12px; margin-top: 5px; display: none;">Les mots de
                         passe ne correspondent pas.</p>

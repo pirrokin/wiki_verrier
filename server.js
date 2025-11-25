@@ -79,6 +79,41 @@ app.post('/api/users', (req, res) => {
     });
 });
 
+// Get Profile Endpoint
+app.get('/api/profile', (req, res) => {
+    const { username } = req.query;
+    if (!username) return res.status(400).json({ success: false, message: 'Username required' });
+
+    const query = 'SELECT username, role, firstname, lastname, email, phone, address, birthdate, gender FROM users WHERE username = ?';
+    db.query(query, [username], (err, results) => {
+        if (err) return res.status(500).json({ success: false, message: 'DB Error' });
+        if (results.length > 0) {
+            res.json({ success: true, user: results[0] });
+        } else {
+            res.status(404).json({ success: false, message: 'User not found' });
+        }
+    });
+});
+
+// Update Profile Endpoint
+app.put('/api/profile', (req, res) => {
+    const { username, firstname, lastname, email, phone, address, birthdate, gender } = req.body;
+
+    const query = `
+        UPDATE users 
+        SET firstname=?, lastname=?, email=?, phone=?, address=?, birthdate=?, gender=?
+        WHERE username=?
+    `;
+
+    db.query(query, [firstname, lastname, email, phone, address, birthdate, gender, username], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ success: false, message: 'DB Error' });
+        }
+        res.json({ success: true, message: 'Profile updated' });
+    });
+});
+
 // Start Server
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);

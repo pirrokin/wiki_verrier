@@ -17,7 +17,7 @@
             <button class="nav-btn">PDMS</button>
             <button class="nav-btn">Documentation</button>
             <button class="nav-btn active" onclick="window.location.href='admin_interface.html'">Adminterface</button>
-            <button class="nav-btn">Votre Espace</button>
+            <button class="nav-btn" onclick="window.location.href='profile.html'">Votre Espace</button>
         </div>
     </nav>
 
@@ -55,6 +55,15 @@
                 </div>
 
                 <div class="input-group">
+                    <label for="confirmPassword">Confirmer le mot de passe</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required
+                        placeholder="Répétez le mot de passe">
+                    <p id="passwordError"
+                        style="color: var(--error-color); font-size: 12px; margin-top: 5px; display: none;">Les mots de
+                        passe ne correspondent pas.</p>
+                </div>
+
+                <div class="input-group">
                     <label for="newRole">Rôle</label>
                     <select id="newRole" name="newRole">
                         <option value="technician">Technicien</option>
@@ -83,6 +92,9 @@
 
         function closeModal() {
             modal.classList.remove('active');
+            // Reset form and error on close
+            document.getElementById('addUserForm').reset();
+            document.getElementById('passwordError').style.display = 'none';
         }
 
         // Close modal if clicking outside
@@ -98,7 +110,18 @@
 
             const newUsername = document.getElementById('newUsername').value;
             const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
             const newRole = document.getElementById('newRole').value;
+            const errorMsg = document.getElementById('passwordError');
+
+            // Validation
+            if (newPassword !== confirmPassword) {
+                errorMsg.style.display = 'block';
+                return;
+            } else {
+                errorMsg.style.display = 'none';
+            }
+
             const btn = e.target.querySelector('button');
             const originalText = btn.innerText;
 

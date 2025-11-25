@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Votre Espace - Technician Wiki</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">Technician Wiki</div>
+        <div class="nav-links">
+            <button class="nav-btn" onclick="window.location.href='admin.html'">Accueil</button>
+            <button class="nav-btn">PDMS</button>
+            <button class="nav-btn">Documentation</button>
+            <button class="nav-btn" id="adminBtn" style="display: none;"
+                onclick="window.location.href='admin_interface.html'">Adminterface</button>
+            <button class="nav-btn active" onclick="window.location.href='profile.html'">Votre Espace</button>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <div class="welcome-section">
+            <div>
+                <h1 class="welcome-title">Votre Espace</h1>
+                <p class="welcome-subtitle">Gérez vos informations personnelles</p>
+            </div>
+            <button class="btn-primary" id="editBtn" onclick="toggleEditMode()">Modifier mes infos</button>
+        </div>
+
+        <div class="profile-grid">
+            <!-- Personal Info Card -->
+            <div class="login-card" style="max-width: 100%; text-align: left;">
+                <h2 style="margin-bottom: 20px;">Informations Personnelles</h2>
+                <form id="profileForm">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="input-group">
+                            <label for="lastname">Nom</label>
+                            <input type="text" id="lastname" name="lastname" disabled placeholder="Non renseigné">
+                        </div>
+                        <div class="input-group">
+                            <label for="firstname">Prénom</label>
+                            <input type="text" id="firstname" name="firstname" disabled placeholder="Non renseigné">
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="input-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" disabled placeholder="Non renseigné">
+                        </div>
+                        <div class="input-group">
+                            <label for="phone">Téléphone</label>
+                            <input type="tel" id="phone" name="phone" disabled placeholder="Non renseigné">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="address">Adresse</label>
+                        <input type="text" id="address" name="address" disabled placeholder="Non renseigné">
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="input-group">
+                            <label for="birthdate">Date de naissance</label>
+                            <input type="date" id="birthdate" name="birthdate" disabled>
+                        </div>
+                        <div class="input-group">
+                            <label for="gender">Sexe</label>
+                            <select id="gender" name="gender" disabled>
+                                <option value="">Non renseigné</option>
+                                <option value="M">Homme</option>
+                                <option value="F">Femme</option>
+                                <option value="Other">Autre</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="saveActions"
+                        style="display: none; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                        <button type="button" class="nav-btn" onclick="cancelEdit()"
+                            style="border: 1px solid #333;">Annuler</button>
+                        <button type="submit" class="btn-primary">Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Future Placeholders -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+                <div class="login-card"
+                    style="max-width: 100%; min-height: 200px; display: flex; align-items: center; justify-content: center; border: 2px dashed #333;">
+                    <p style="color: #555;">Graphique: Suivi de publication</p>
+                </div>
+                <div class="login-card"
+                    style="max-width: 100%; min-height: 200px; display: flex; align-items: center; justify-content: center; border: 2px dashed #333;">
+                    <p style="color: #555;">Graphique: Mises à jour PDMS</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const username = localStorage.getItem('username');
+        if (!username) window.location.href = 'index.html';
+
+        // Check role to show/hide Adminterface button
+        // Ideally we should store role in localStorage too, or fetch it.
+        // For now, let's fetch profile which will return role too if we want, or just rely on what we have.
+
+        let isEditing = false;
+        const form = document.getElementById('profileForm');
+        const inputs = form.querySelectorAll('input, select');
+        const editBtn = document.getElementById('editBtn');
+        const saveActions = document.getElementById('saveActions');
+
+        // Load Profile Data
+        fetch(`/api/profile?username=${username}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const user = data.user;
+                    if (user.role === 'admin') {
+                        document.getElementById('adminBtn').style.display = 'block';
+                    }
+
+                    // Populate fields
+                    document.getElementById('lastname').value = user.lastname || '';
+                    document.getElementById('firstname').value = user.firstname || '';
+                    document.getElementById('email').value = user.email || '';
+                    document.getElementById('phone').value = user.phone || '';
+                    document.getElementById('address').value = user.address || '';
+
+                    if (user.birthdate) {
+                        // Format date to YYYY-MM-DD for input type=date
+                        const date = new Date(user.birthdate);
+                        document.getElementById('birthdate').value = date.toISOString().split('T')[0];
+                    }
+
+                    document.getElementById('gender').value = user.gender || '';
+                }
+            });
+
+        function toggleEditMode() {
+            isEditing = !isEditing;
+            inputs.forEach(input => input.disabled = !isEditing);
+
+            if (isEditing) {
+                editBtn.style.display = 'none';
+                saveActions.style.display = 'flex';
+            } else {
+                editBtn.style.display = 'block';
+                saveActions.style.display = 'none';
+            }
+        }
+
+        function cancelEdit() {
+            toggleEditMode();
+            // Reload data to reset changes
+            location.reload();
+        }
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const formData = {
+                username: username,
+                lastname: form.lastname.value,
+                firstname: form.firstname.value,
+                email: form.email.value,
+                phone: form.phone.value,
+                address: form.address.value,
+                birthdate: form.birthdate.value,
+                gender: form.gender.value
+            };
+
+            fetch('/api/profile', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Profil mis à jour !');
+                        toggleEditMode();
+                    } else {
+                        alert('Erreur : ' + data.message);
+                    }
+                });
+        });
+    </script>
+</body>
+
+</html>

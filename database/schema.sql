@@ -7,6 +7,13 @@ CREATE TABLE IF NOT EXISTS users (
     username VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL, -- In real app, we hash this!
     role ENUM('admin', 'technician') DEFAULT 'technician',
+    firstname VARCHAR(100),
+    lastname VARCHAR(100),
+    email VARCHAR(150),
+    phone VARCHAR(20),
+    address TEXT,
+    birthdate DATE,
+    gender ENUM('M', 'F', 'Other'),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

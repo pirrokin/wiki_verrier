@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDMS - Technician Wiki</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">Technician Wiki</div>
+        <div class="nav-links">
+            <button class="nav-btn" onclick="window.location.href='admin.html'">Accueil</button>
+            <button class="nav-btn active">PDMS</button>
+            <button class="nav-btn">Documentation</button>
+            <button class="nav-btn" id="adminBtn" style="display: none;"
+                onclick="window.location.href='admin_interface.html'">Adminterface</button>
+            <button class="nav-btn" onclick="window.location.href='profile.html'">Votre Espace</button>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <div class="welcome-section" style="justify-content: center; text-align: center; margin-top: 100px;">
+            <div>
+                <h1 class="welcome-title" style="font-size: 48px; margin-bottom: 20px;">🔨</h1>
+                <h2 style="margin-bottom: 10px;">Désolé, cette page est en cours de construction</h2>
+                <p class="welcome-subtitle">Revenez plus tard !</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Retrieve username from localStorage
+        const username = localStorage.getItem('username');
+        if (!username) {
+            window.location.href = 'index.html';
+        }
+
+        // Show Adminterface button if admin
+        // We need to check role. Since we don't have user object here, we might need to fetch it or store role in localStorage.
+        // For now, let's fetch profile to check role, or just check if username is 'admin' (simple check).
+        // Better: fetch /api/profile to get role.
+
+        fetch('/api/profile?username=' + username)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.user.role === 'admin') {
+                    document.getElementById('adminBtn').style.display = 'block';
+                }
+            });
+
+        // Simple fallback if fetch fails or for immediate feedback if we stored role
+        if (username === 'admin') {
+            document.getElementById('adminBtn').style.display = 'block';
+        }
+    </script>
+</body>
+
+</html>

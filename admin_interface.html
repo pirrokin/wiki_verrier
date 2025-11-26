@@ -15,7 +15,7 @@
         <div class="nav-brand">Technician Wiki</div>
         <div class="nav-links">
             <button class="nav-btn" onclick="window.location.href='admin.html'">Accueil</button>
-            <button class="nav-btn">PDMS</button>
+            <button class="nav-btn" onclick="window.location.href='pdms.html'">PDMS</button>
             <button class="nav-btn">Documentation</button>
             <button class="nav-btn active" onclick="window.location.href='admin_interface.html'">Adminterface</button>
             <button class="nav-btn" onclick="window.location.href='profile.html'">Votre Espace</button>
@@ -87,7 +87,7 @@
                 <div class="input-group">
                     <label for="newRole">Rôle</label>
                     <select id="newRole" name="newRole">
-                        <option value="technician">Technicien</option>
+                        <option value="technician">Invité</option>
                         <option value="admin">Administrateur</option>
                     </select>
                 </div>
@@ -221,7 +221,7 @@
                     if (data.success) {
                         const user = data.user;
                         document.getElementById('detailUsername').value = user.username;
-                        document.getElementById('detailRole').value = user.role === 'admin' ? 'Administrateur' : 'Technicien';
+                        document.getElementById('detailRole').value = user.role === 'admin' ? 'Administrateur' : 'Invité';
 
                         // Password handling
                         const pwdInput = document.getElementById('detailPassword');
@@ -450,7 +450,7 @@
                                     <div style="font-weight: 500; color: white;">${user.username} ${isMe ? '(Vous)' : ''}</div>
                                 </td>
                                 <td>
-                                    <span class="role-badge role-${user.role}">${user.role === 'admin' ? 'Administrateur' : 'Technicien'}</span>
+                                    <span class="role-badge role-${user.role}">${user.role === 'admin' ? 'Administrateur' : 'Invité'}</span>
                                 </td>
                                 <td>${date}</td>
                                 <td style="text-align: right;">

@@ -79,6 +79,39 @@ app.post('/api/users', (req, res) => {
     });
 });
 
+// Get All Users Endpoint
+app.get('/api/users', (req, res) => {
+    const query = 'SELECT id, username, role, created_at FROM users';
+    db.query(query, (err, results) => {
+        if (err) return res.status(500).json({ success: false, message: 'DB Error' });
+        res.json({ success: true, users: results });
+    });
+});
+
+// Delete User Endpoint
+app.delete('/api/users/:id', (req, res) => {
+    const userId = req.params.id;
+
+    // First check if user is admin
+    const checkQuery = 'SELECT username FROM users WHERE id = ?';
+    db.query(checkQuery, [userId], (err, results) => {
+        if (err) return res.status(500).json({ success: false, message: 'DB Error' });
+        if (results.length === 0) return res.status(404).json({ success: false, message: 'User not found' });
+
+        const userToDelete = results[0];
+        if (userToDelete.username === 'admin') {
+            return res.status(403).json({ success: false, message: 'Cannot delete the main admin account' });
+        }
+
+        // Proceed with deletion
+        const deleteQuery = 'DELETE FROM users WHERE id = ?';
+        db.query(deleteQuery, [userId], (err, result) => {
+            if (err) return res.status(500).json({ success: false, message: 'DB Error' });
+            res.json({ success: true, message: 'User deleted' });
+        });
+    });
+});
+
 // Get Profile Endpoint
 app.get('/api/profile', (req, res) => {
     const { username } = req.query;

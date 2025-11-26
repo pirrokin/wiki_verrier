@@ -261,6 +261,14 @@ input::placeholder {
     color: #555;
 }
 
+input:disabled,
+select:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: #252525;
+    /* Slightly darker */
+}
+
 .btn-login {
     width: 100%;
     padding: 14px;
@@ -281,4 +289,82 @@ input::placeholder {
 
 .btn-login:active {
     transform: scale(0.98);
+}
+
+/* User Table */
+.user-table-container {
+    background-color: var(--card-bg);
+    border-radius: 16px;
+    border: 1px solid #333;
+    overflow: hidden;
+    margin-top: 20px;
+}
+
+.user-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.user-table th,
+.user-table td {
+    padding: 16px 24px;
+    border-bottom: 1px solid #333;
+}
+
+.user-table th {
+    background-color: rgba(255, 255, 255, 0.05);
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.user-table tr:last-child td {
+    border-bottom: none;
+}
+
+.user-table tr:hover {
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+.role-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.role-admin {
+    background-color: rgba(98, 0, 234, 0.2);
+    color: #b388ff;
+    border: 1px solid rgba(98, 0, 234, 0.3);
+}
+
+.role-technician {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #e0e0e0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-delete {
+    background: none;
+    border: none;
+    color: var(--error-color);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+}
+
+.btn-delete:hover {
+    background-color: rgba(207, 102, 121, 0.1);
+}
+
+.btn-delete:disabled {
+    color: #555;
+    cursor: not-allowed;
+    background: none;
 }

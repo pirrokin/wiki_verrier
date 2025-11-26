@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation - Technician Wiki</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .doc-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+            height: calc(100vh - 140px);
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .category-item {
+            margin-bottom: 10px;
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .category-header:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .process-list {
+            margin-left: 20px;
+            border-left: 2px solid #333;
+            padding-left: 10px;
+            margin-top: 5px;
+            display: none;
+            /* Hidden by default */
+        }
+
+        .process-list.active {
+            display: block;
+        }
+
+        .process-item {
+            padding: 8px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+        }
+
+        .process-item:hover {
+            color: var(--text-primary);
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .process-item.active {
+            color: var(--accent-color);
+            background-color: rgba(98, 0, 234, 0.1);
+            font-weight: 500;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid #333;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .search-bar {
+            width: 100%;
+            padding: 12px 20px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            margin-bottom: 20px;
+            outline: none;
+        }
+
+        .search-bar:focus {
+            border-color: var(--accent-color);
+        }
+
+        .viewer-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .btn-icon {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+        }
+
+        .btn-icon:hover {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Modal Styles (Reuse existing modal styles but specific IDs) */
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">Technician Wiki</div>
+        <div class="nav-links">
+            <button class="nav-btn" onclick="window.location.href='admin.html'">Accueil</button>
+            <button class="nav-btn" onclick="window.location.href='pdms.html'">PDMS</button>
+            <button class="nav-btn active">Documentation</button>
+            <button class="nav-btn" id="adminBtn" style="display: none;"
+                onclick="window.location.href='admin_interface.html'">Adminterface</button>
+            <button class="nav-btn" onclick="window.location.href='profile.html'">Votre Espace</button>
+        </div>
+    </nav>
+
+    <div class="dashboard-container" style="max-width: 100%; padding: 20px;">
+        <div style="margin-bottom: 20px;">
+            <h1 class="welcome-title">Base de Connaissances</h1>
+            <p class="welcome-subtitle">Retrouvez tous les processus et documentations techniques.</p>
+        </div>
+
+        <input type="text" class="search-bar" id="searchInput" placeholder="Rechercher un processus..."
+            oninput="handleSearch()">
+
+        <div class="doc-layout">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <h3 style="margin: 0;">Catégories</h3>
+                    <button class="btn-icon" onclick="openCategoryModal()" title="Ajouter une catégorie">
+                        <span class="material-icons">add</span>
+                    </button>
+                </div>
+                <div class="sidebar-content" id="categoryList">
+                    <!-- Categories will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <div id="processViewer" class="viewer-container">
+                    <div class="empty-state">
+                        <span class="material-icons"
+                            style="font-size: 64px; margin-bottom: 20px; color: #333;">library_books</span>
+                        <h2>Sélectionnez un processus</h2>
+                        <p>Naviguez dans les catégories à gauche ou utilisez la recherche.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Category Modal -->
+    <div id="categoryModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('categoryModal')"><span
+                    class="material-icons">close</span></button>
+            <h2>Nouvelle Catégorie</h2>
+            <form id="addCategoryForm">
+                <div class="input-group">
+                    <label>Nom de la catégorie</label>
+                    <input type="text" id="newCategoryName" required placeholder="Ex: Office">
+                </div>
+                <button type="submit" class="btn-login">Créer</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Process Modal -->
+    <div id="processModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('processModal')"><span
+                    class="material-icons">close</span></button>
+            <h2>Nouveau Processus</h2>
+            <form id="addProcessForm">
+                <input type="hidden" id="targetCategoryId">
+                <div class="input-group">
+                    <label>Titre du processus</label>
+                    <input type="text" id="newProcessTitle" required placeholder="Ex: Comment imprimer">
+                </div>
+                <div class="input-group">
+                    <label>Fichier PDF (Optionnel)</label>
+                    <input type="file" id="newProcessFile" accept=".pdf">
+                </div>
+                <button type="submit" class="btn-login">Créer</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Retrieve username from localStorage
+        const username = localStorage.getItem('username');
+        if (!username) window.location.href = 'index.html';
+
+        // Check Admin Role
+        fetch('/api/profile?username=' + username)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.user.role === 'admin') {
+                    document.getElementById('adminBtn').style.display = 'block';
+                }
+            });
+
+        // --- Data Loading ---
+        function loadCategories() {
+            fetch('/api/categories')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        renderSidebar(data.categories);
+                    }
+                });
+        }
+
+        function renderSidebar(categories) {
+            const container = document.getElementById('categoryList');
+            container.innerHTML = '';
+
+            categories.forEach(cat => {
+                const catDiv = document.createElement('div');
+                catDiv.className = 'category-item';
+
+                // Header
+                const header = document.createElement('div');
+                header.className = 'category-header';
+                header.innerHTML = `
+                    <div style="display: flex; align-items: center;">
+                        <span class="material-icons" style="font-size: 18px; margin-right: 8px;">folder</span>
+                        ${cat.name}
+                    </div>
+                    <button class="btn-icon" onclick="event.stopPropagation(); openProcessModal(${cat.id})" title="Ajouter un processus">
+                        <span class="material-icons" style="font-size: 16px;">add</span>
+                    </button>
+                `;
+                header.onclick = () => toggleCategory(cat.id);
+
+                // Process List
+                const pList = document.createElement('div');
+                pList.className = 'process-list';
+                pList.id = `cat-${cat.id}`;
+
+                cat.processes.forEach(proc => {
+                    const pItem = document.createElement('div');
+                    pItem.className = 'process-item';
+                    pItem.innerHTML = `<span class="material-icons" style="font-size: 14px; margin-right: 8px;">description</span> ${proc.title}`;
+                    pItem.onclick = (e) => {
+                        e.stopPropagation();
+                        loadProcess(proc);
+                        // Highlight active
+                        document.querySelectorAll('.process-item').forEach(el => el.classList.remove('active'));
+                        pItem.classList.add('active');
+                    };
+                    pList.appendChild(pItem);
+                });
+
+                catDiv.appendChild(header);
+                catDiv.appendChild(pList);
+                container.appendChild(catDiv);
+            });
+        }
+
+        function toggleCategory(id) {
+            const list = document.getElementById(`cat-${id}`);
+            list.classList.toggle('active');
+        }
+
+        // --- Process Viewing ---
+        function loadProcess(process) {
+            const container = document.getElementById('processViewer');
+
+            let content = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px;">
+                    <h2 style="margin: 0;">${process.title}</h2>
+            `;
+
+            if (process.file_path) {
+                content += `
+                    <a href="/uploads/${process.file_path}" download class="btn-view" title="Télécharger">
+                        <span class="material-icons">download</span>
+                    </a>
+                </div>
+                <embed src="/uploads/${process.file_path}" type="application/pdf" width="100%" height="100%" />
+                `;
+            } else {
+                content += `</div>
+                <div class="empty-state">
+                    <span class="material-icons" style="font-size: 48px; margin-bottom: 20px;">upload_file</span>
+                    <p>Aucun document associé.</p>
+                    <button class="btn-primary" onclick="triggerUpload(${process.id})">Uploader un PDF</button>
+                    <input type="file" id="upload-${process.id}" accept=".pdf" style="display: none;" onchange="uploadFile(${process.id}, this)">
+                </div>`;
+            }
+
+            container.innerHTML = content;
+        }
+
+        // --- Search ---
+        function handleSearch() {
+            const query = document.getElementById('searchInput').value;
+            if (query.length < 2) {
+                loadCategories(); // Reset
+                return;
+            }
+
+            fetch(`/api/search?q=${query}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        // Render flat list of results in sidebar temporarily or filter existing
+                        // For simplicity, let's just show results in the main area or filter the sidebar
+                        // Let's filter the sidebar visually? Or just show a "Search Results" category.
+                        // Actually, user asked for "intelligent search".
+                        // Let's render a special "Search Results" view in the sidebar.
+                        const container = document.getElementById('categoryList');
+                        container.innerHTML = `<div class="category-header">Résultats de recherche</div>`;
+
+                        data.results.forEach(proc => {
+                            const pItem = document.createElement('div');
+                            pItem.className = 'process-item';
+                            pItem.style.marginLeft = '10px';
+                            pItem.innerHTML = `
+                                <div style="display:flex; flex-direction:column;">
+                                    <span>${proc.title}</span>
+                                    <span style="font-size: 10px; color: #666;">${proc.category_name}</span>
+                                </div>
+                            `;
+                            pItem.onclick = () => loadProcess(proc);
+                            container.appendChild(pItem);
+                        });
+                    }
+                });
+        }
+
+        // --- Actions ---
+        function openCategoryModal() {
+            document.getElementById('categoryModal').classList.add('active');
+        }
+
+        function openProcessModal(catId) {
+            document.getElementById('targetCategoryId').value = catId;
+            document.getElementById('processModal').classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function triggerUpload(id) {
+            document.getElementById(`upload-${id}`).click();
+        }
+
+        function uploadFile(id, input) {
+            if (input.files.length === 0) return;
+
+            const formData = new FormData();
+            formData.append('document', input.files[0]);
+
+            fetch(`/api/processes/${id}/file`, {
+                method: 'PUT',
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Fichier uploadé !');
+                        // Refresh current view
+                        loadProcess({ id: id, title: document.querySelector('h2').innerText, file_path: data.file_path });
+                        loadCategories(); // Refresh sidebar data
+                    } else {
+                        alert('Erreur: ' + data.message);
+                    }
+                });
+        }
+
+        // --- Forms ---
+        document.getElementById('addCategoryForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('newCategoryName').value;
+
+            fetch('/api/categories', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        closeModal('categoryModal');
+                        e.target.reset();
+                        loadCategories();
+                    } else {
+                        alert('Erreur: ' + data.message);
+                    }
+                });
+        });
+
+        document.getElementById('addProcessForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const catId = document.getElementById('targetCategoryId').value;
+            const title = document.getElementById('newProcessTitle').value;
+            const fileInput = document.getElementById('newProcessFile');
+
+            const formData = new FormData();
+            formData.append('category_id', catId);
+            formData.append('title', title);
+            if (fileInput.files.length > 0) {
+                formData.append('document', fileInput.files[0]);
+            }
+
+            fetch('/api/processes', {
+                method: 'POST',
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        closeModal('processModal');
+                        e.target.reset();
+                        loadCategories();
+                    } else {
+                        alert('Erreur: ' + data.message);
+                    }
+                });
+        });
+
+        // Initial Load
+        loadCategories();
+
+        // Close modals on outside click
+        window.onclick = function (event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('active');
+            }
+        }
+    </script>
+</body>
+
+</html>

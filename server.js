@@ -3,14 +3,37 @@ const mysql = require('mysql2');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
+const multer = require('multer');
+const fs = require('fs');
 
 const app = express();
-const PORT = 3000;
+const port = 3000;
+
+// Configure Multer for file uploads
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const uploadDir = 'uploads/';
+        // Create directory if it doesn't exist
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir);
+        }
+        cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+        // Keep original filename
+        // Sanitize filename to prevent issues (basic)
+        const sanitized = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+        cb(null, sanitized);
+    }
+});
+
+const upload = multer({ storage: storage });
 
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, '.'))); // Serve static files (HTML, CSS, JS)
+app.use(express.static('.')); // Serve static files from current directory
+app.use('/uploads', express.static('uploads')); // Serve uploaded files explicitly
 
 // Database Connection (Placeholder - will need real credentials)
 const db = mysql.createConnection({
@@ -155,14 +178,19 @@ app.get('/api/users/:id', (req, res) => {
     });
 });
 
-// Get Profile Endpoint
+// API Endpoint to get user profile
 app.get('/api/profile', (req, res) => {
-    const { username } = req.query;
-    if (!username) return res.status(400).json({ success: false, message: 'Username required' });
+    const username = req.query.username;
+    if (!username) {
+        return res.status(400).json({ success: false, message: 'Username required' });
+    }
 
-    const query = 'SELECT username, role, firstname, lastname, email, phone, address, birthdate, gender FROM users WHERE username = ?';
+    const query = 'SELECT id, username, role, firstname, lastname, email, phone, address, birthdate, gender FROM users WHERE username = ?';
     db.query(query, [username], (err, results) => {
-        if (err) return res.status(500).json({ success: false, message: 'DB Error' });
+        if (err) {
+            console.error('Error fetching profile:', err);
+            return res.status(500).json({ success: false, message: 'Database error' });
+        }
         if (results.length > 0) {
             res.json({ success: true, user: results[0] });
         } else {
@@ -171,22 +199,150 @@ app.get('/api/profile', (req, res) => {
     });
 });
 
-// Update Profile Endpoint
+// API Endpoint to update user profile
 app.put('/api/profile', (req, res) => {
     const { username, firstname, lastname, email, phone, address, birthdate, gender } = req.body;
 
+    if (!username) {
+        return res.status(400).json({ success: false, message: 'Username required' });
+    }
+
     const query = `
         UPDATE users 
-        SET firstname=?, lastname=?, email=?, phone=?, address=?, birthdate=?, gender=?
-        WHERE username=?
+        SET firstname = ?, lastname = ?, email = ?, phone = ?, address = ?, birthdate = ?, gender = ?
+        WHERE username = ?
     `;
 
-    db.query(query, [firstname, lastname, email, phone, address, birthdate, gender, username], (err, result) => {
+    // Handle empty strings for date/enum by converting to NULL
+    const safeBirthdate = birthdate === "" ? null : birthdate;
+    const safeGender = gender === "" ? null : gender;
+
+    db.query(query, [firstname, lastname, email, phone, address, safeBirthdate, safeGender, username], (err, result) => {
+        if (err) {
+            console.error('Error updating profile:', err);
+            return res.status(500).json({ success: false, message: 'Database error' });
+        }
+        res.json({ success: true, message: 'Profile updated successfully' });
+    });
+});
+
+// API Endpoint for File Upload
+app.post('/api/upload', upload.single('document'), (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ success: false, message: 'No file uploaded' });
+    }
+    res.json({ success: true, message: 'File uploaded successfully', filename: req.file.filename });
+});
+
+// API Endpoint to List Documents (Legacy - kept for compatibility or admin view if needed)
+app.get('/api/documents', (req, res) => {
+    const uploadDir = 'uploads/';
+    if (!fs.existsSync(uploadDir)) return res.json({ success: true, documents: [] });
+    fs.readdir(uploadDir, (err, files) => {
+        if (err) return res.status(500).json({ success: false, message: 'Unable to scan directory' });
+        const pdfFiles = files.filter(file => path.extname(file).toLowerCase() === '.pdf');
+        res.json({ success: true, documents: pdfFiles });
+    });
+});
+
+// --- Advanced Documentation API ---
+
+// Get All Categories with Processes
+app.get('/api/categories', (req, res) => {
+    const query = `
+        SELECT c.id as category_id, c.name as category_name, 
+               p.id as process_id, p.title as process_title, p.file_path
+        FROM categories c
+        LEFT JOIN processes p ON c.id = p.category_id
+        ORDER BY c.name, p.title
+    `;
+    db.query(query, (err, results) => {
         if (err) {
             console.error(err);
             return res.status(500).json({ success: false, message: 'DB Error' });
         }
-        res.json({ success: true, message: 'Profile updated' });
+
+        // Group by category
+        const categories = [];
+        const categoryMap = new Map();
+
+        results.forEach(row => {
+            if (!categoryMap.has(row.category_id)) {
+                categoryMap.set(row.category_id, {
+                    id: row.category_id,
+                    name: row.category_name,
+                    processes: []
+                });
+                categories.push(categoryMap.get(row.category_id));
+            }
+            if (row.process_id) {
+                categoryMap.get(row.category_id).processes.push({
+                    id: row.process_id,
+                    title: row.process_title,
+                    file_path: row.file_path
+                });
+            }
+        });
+
+        res.json({ success: true, categories: categories });
+    });
+});
+
+// Create Category
+app.post('/api/categories', (req, res) => {
+    const { name } = req.body;
+    if (!name) return res.status(400).json({ success: false, message: 'Name required' });
+
+    db.query('INSERT INTO categories (name) VALUES (?)', [name], (err, result) => {
+        if (err) {
+            if (err.code === 'ER_DUP_ENTRY') return res.status(400).json({ success: false, message: 'Category already exists' });
+            return res.status(500).json({ success: false, message: 'DB Error' });
+        }
+        res.json({ success: true, id: result.insertId, name: name });
+    });
+});
+
+// Create Process
+app.post('/api/processes', upload.single('document'), (req, res) => {
+    const { category_id, title } = req.body;
+    const file_path = req.file ? req.file.filename : null;
+
+    if (!category_id || !title) return res.status(400).json({ success: false, message: 'Category and Title required' });
+
+    const query = 'INSERT INTO processes (category_id, title, file_path) VALUES (?, ?, ?)';
+    db.query(query, [category_id, title, file_path], (err, result) => {
+        if (err) return res.status(500).json({ success: false, message: 'DB Error' });
+        res.json({ success: true, id: result.insertId, title: title, file_path: file_path });
+    });
+});
+
+// Update Process File (Upload)
+app.put('/api/processes/:id/file', upload.single('document'), (req, res) => {
+    const processId = req.params.id;
+    if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
+
+    const query = 'UPDATE processes SET file_path = ? WHERE id = ?';
+    db.query(query, [req.file.filename, processId], (err, result) => {
+        if (err) return res.status(500).json({ success: false, message: 'DB Error' });
+        res.json({ success: true, message: 'File updated', file_path: req.file.filename });
+    });
+});
+
+// Search Processes
+app.get('/api/search', (req, res) => {
+    const { q } = req.query;
+    if (!q) return res.json({ success: true, results: [] });
+
+    const query = `
+        SELECT p.id, p.title, p.file_path, c.name as category_name 
+        FROM processes p
+        JOIN categories c ON p.category_id = c.id
+        WHERE p.title LIKE ?
+        LIMIT 10
+    `;
+    db.query(query, [`%${q}%`], (err, results) => {
+        if (err) return res.status(500).json({ success: false, message: 'DB Error' });
+        res.json({ success: true, results: results });
     });
 });
 

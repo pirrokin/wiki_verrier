@@ -384,3 +384,51 @@ select:disabled {
     cursor: not-allowed;
     background: none;
 }
+
+.btn-view {
+    background: none;
+    border: none;
+    color: var(--accent-color);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+    margin-right: 5px;
+}
+
+.btn-view:hover {
+    background-color: rgba(98, 0, 234, 0.1);
+}
+
+.password-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-toggle {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    margin-left: 10px;
+    font-size: 14px;
+}
+
+.password-toggle:hover {
+    color: var(--text-primary);
+}
+
+.material-icons {
+    font-size: 18px;
+    vertical-align: middle;
+}
+
+/* Adjust button padding for icons */
+.btn-view,
+.btn-delete {
+    padding: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}

@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Adminterface - Technician Wiki</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
 
@@ -27,7 +28,11 @@
                 <h1 class="welcome-title">Gestion des Utilisateurs</h1>
                 <p class="welcome-subtitle">Ajoutez ou modifiez les accès</p>
             </div>
-            <button class="btn-primary" onclick="openModal()">+ Ajouter un utilisateur</button>
+            <button class="btn-primary" onclick="openModal()">
+                <span class="material-icons"
+                    style="vertical-align: middle; font-size: 20px; margin-right: 5px;">add</span>
+                Ajouter un utilisateur
+            </button>
         </div>
 
         <!-- Placeholder for future content (User List, Stats, etc.) -->
@@ -52,7 +57,9 @@
     <!-- Modal -->
     <div id="userModal" class="modal">
         <div class="modal-content">
-            <button class="close-modal" onclick="closeModal()">&times;</button>
+            <button class="close-modal" onclick="closeModal()">
+                <span class="material-icons">close</span>
+            </button>
             <h2>Ajouter un utilisateur</h2>
             <p class="subtitle" style="margin-bottom: 20px;">Créez un nouvel accès pour l'équipe</p>
 
@@ -90,6 +97,56 @@
         </div>
     </div>
 
+    <!-- User Details Modal -->
+    <div id="detailsModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeDetailsModal()">
+                <span class="material-icons">close</span>
+            </button>
+            <h2>Détails de l'utilisateur</h2>
+
+            <div style="margin-top: 20px;">
+                <div class="input-group">
+                    <label>Identifiant</label>
+                    <input type="text" id="detailUsername" readonly disabled>
+                </div>
+
+                <div class="input-group">
+                    <label>Rôle</label>
+                    <input type="text" id="detailRole" readonly disabled>
+                </div>
+
+                <div class="input-group">
+                    <label>Mot de passe</label>
+                    <div class="password-container">
+                        <input type="password" id="detailPassword" value="******" readonly disabled>
+                        <button class="password-toggle" onclick="togglePasswordVisibility()">
+                            <span class="material-icons">visibility</span>
+                        </button>
+                    </div>
+                </div>
+
+                <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="input-group">
+                        <label>Nom</label>
+                        <input type="text" id="detailLastname" readonly disabled>
+                    </div>
+                    <div class="input-group">
+                        <label>Prénom</label>
+                        <input type="text" id="detailFirstname" readonly disabled>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Email</label>
+                    <input type="text" id="detailEmail" readonly disabled>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Delete Confirmation Modal -->
     <div id="deleteModal" class="modal">
         <div class="modal-content">
@@ -112,12 +169,29 @@
             window.location.href = 'index.html';
         }
 
-        // Modal Logic (Add User)
+        // Modal Logic (Add User & Details)
         const modal = document.getElementById('userModal');
         const deleteModal = document.getElementById('deleteModal');
+        const detailsModal = document.getElementById('detailsModal');
         let userToDeleteId = null;
+        let currentDetailUserId = null;
 
         function openModal() {
+            // Role Restriction Logic
+            const roleSelect = document.getElementById('newRole');
+            const adminOption = roleSelect.querySelector('option[value="admin"]');
+
+            if (username !== 'admin') {
+                if (adminOption) adminOption.remove();
+            } else {
+                // Restore admin option if missing and user is admin
+                if (!roleSelect.querySelector('option[value="admin"]')) {
+                    const opt = document.createElement('option');
+                    opt.value = 'admin';
+                    opt.innerText = 'Administrateur';
+                    roleSelect.appendChild(opt);
+                }
+            }
             modal.classList.add('active');
         }
 
@@ -139,14 +213,136 @@
             userToDeleteId = null;
         }
 
+        function openDetailsModal(id) {
+            currentDetailUserId = id;
+            fetch(`/api/users/${id}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const user = data.user;
+                        document.getElementById('detailUsername').value = user.username;
+                        document.getElementById('detailRole').value = user.role === 'admin' ? 'Administrateur' : 'Technicien';
+
+                        // Password handling
+                        const pwdInput = document.getElementById('detailPassword');
+                        const pwdContainer = document.querySelector('.password-container');
+
+                        // Reset UI state
+                        pwdInput.type = 'password';
+                        pwdInput.value = '••••••';
+                        pwdInput.disabled = true;
+                        pwdInput.dataset.realPassword = user.password;
+
+                        // Clear existing buttons
+                        const existingToggle = pwdContainer.querySelector('.password-toggle');
+                        const existingEdit = pwdContainer.querySelector('.btn-edit-pwd');
+                        const existingSave = pwdContainer.querySelector('.btn-save-pwd');
+                        if (existingToggle) existingToggle.remove();
+                        if (existingEdit) existingEdit.remove();
+                        if (existingSave) existingSave.remove();
+
+                        // Add Toggle Button
+                        const toggleBtn = document.createElement('button');
+                        toggleBtn.className = 'password-toggle';
+                        toggleBtn.innerHTML = '<span class="material-icons">visibility</span>';
+                        toggleBtn.onclick = togglePasswordVisibility;
+                        pwdContainer.appendChild(toggleBtn);
+
+                        // Add Edit Button (if not viewing 'admin' account)
+                        if (user.username !== 'admin') {
+                            const editBtn = document.createElement('button');
+                            editBtn.className = 'btn-view btn-edit-pwd'; // Reuse btn-view style
+                            editBtn.innerHTML = '<span class="material-icons">edit</span>';
+                            editBtn.title = "Modifier le mot de passe";
+                            editBtn.style.marginLeft = '10px';
+                            editBtn.onclick = () => enablePasswordEdit(editBtn, toggleBtn);
+                            pwdContainer.appendChild(editBtn);
+                        }
+
+                        document.getElementById('detailLastname').value = user.lastname || '-';
+                        document.getElementById('detailFirstname').value = user.firstname || '-';
+                        document.getElementById('detailEmail').value = user.email || '-';
+
+                        detailsModal.classList.add('active');
+                    } else {
+                        alert('Erreur : ' + data.message);
+                    }
+                });
+        }
+
+        function enablePasswordEdit(editBtn, toggleBtn) {
+            const pwdInput = document.getElementById('detailPassword');
+            const pwdContainer = document.querySelector('.password-container');
+
+            pwdInput.disabled = false;
+            pwdInput.value = ''; // Clear for new input
+            pwdInput.placeholder = "Nouveau mot de passe";
+            pwdInput.focus();
+
+            // Hide toggle and edit buttons
+            toggleBtn.style.display = 'none';
+            editBtn.style.display = 'none';
+
+            // Add Save Button
+            const saveBtn = document.createElement('button');
+            saveBtn.className = 'btn-primary btn-save-pwd';
+            saveBtn.innerHTML = '<span class="material-icons">check</span>';
+            saveBtn.style.padding = '8px 16px';
+            saveBtn.style.marginLeft = '10px';
+            saveBtn.onclick = saveNewPassword;
+            pwdContainer.appendChild(saveBtn);
+        }
+
+        function saveNewPassword() {
+            const pwdInput = document.getElementById('detailPassword');
+            const newPassword = pwdInput.value;
+
+            if (!newPassword) {
+                alert('Veuillez entrer un mot de passe.');
+                return;
+            }
+
+            fetch(`/api/users/${currentDetailUserId}/password`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ newPassword: newPassword })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Mot de passe mis à jour !');
+                        closeDetailsModal();
+                    } else {
+                        alert('Erreur : ' + data.message);
+                    }
+                });
+        }
+
+        function closeDetailsModal() {
+            detailsModal.classList.remove('active');
+            currentDetailUserId = null;
+        }
+
+        function togglePasswordVisibility() {
+            const pwdInput = document.getElementById('detailPassword');
+            const toggleBtn = document.querySelector('.password-toggle');
+
+            if (pwdInput.type === 'password') {
+                pwdInput.type = 'text';
+                pwdInput.value = pwdInput.dataset.realPassword;
+                toggleBtn.innerHTML = '<span class="material-icons">visibility_off</span>';
+            } else {
+                pwdInput.type = 'password';
+                pwdInput.value = '••••••';
+                toggleBtn.innerHTML = '<span class="material-icons">visibility</span>';
+            }
+        }
+
         // Close modal if clicking outside
         window.onclick = function (event) {
-            if (event.target == modal) {
-                closeModal();
-            }
-            if (event.target == deleteModal) {
-                closeDeleteModal();
-            }
+            if (event.target == modal) closeModal();
+            if (event.target == deleteModal) closeDeleteModal();
+            if (event.target == detailsModal) closeDetailsModal();
         }
 
         // Handle Add User Form
@@ -168,14 +364,20 @@
             }
 
             const btn = e.target.querySelector('button');
-            const originalText = btn.innerText;
+            const originalText = btn.innerHTML;
 
-            btn.innerText = 'Création...';
+            btn.innerHTML = 'Création...';
 
+            // Pass creatorUsername for role check
             fetch('/api/users', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username: newUsername, password: newPassword, role: newRole })
+                body: JSON.stringify({
+                    username: newUsername,
+                    password: newPassword,
+                    role: newRole,
+                    creatorUsername: username
+                })
             })
                 .then(response => response.json())
                 .then(data => {
@@ -193,7 +395,7 @@
                     alert('Erreur technique');
                 })
                 .finally(() => {
-                    btn.innerText = originalText;
+                    btn.innerHTML = originalText;
                 });
         });
 
@@ -228,16 +430,21 @@
                             const isMe = user.username === username; // Current user
                             const isAdmin = user.username === 'admin'; // Main admin
 
+                            const viewBtn = `<button class="btn-view" onclick="openDetailsModal(${user.id})" title="Voir les détails">
+                                <span class="material-icons">visibility</span>
+                            </button>`;
+
                             let deleteBtn = '';
                             if (isMe) {
-                                deleteBtn = `<span style="color: #555; font-size: 12px;">Vous</span>`;
+                                deleteBtn = `<span style="color: #555; font-size: 12px; margin-left: 8px;">Vous</span>`;
                             } else if (!isAdmin) {
                                 deleteBtn = `<button class="btn-delete" onclick="openDeleteModal(${user.id}, '${user.username}')" title="Supprimer">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                    <span class="material-icons">delete</span>
                                 </button>`;
                             } else {
-                                deleteBtn = `<span style="color: #555; font-size: 12px;">Protégé</span>`;
+                                deleteBtn = `<span style="color: #555; font-size: 12px; margin-left: 8px;">Protégé</span>`;
                             }
+
                             tr.innerHTML = `
                                 <td>
                                     <div style="font-weight: 500; color: white;">${user.username} ${isMe ? '(Vous)' : ''}</div>
@@ -247,6 +454,7 @@
                                 </td>
                                 <td>${date}</td>
                                 <td style="text-align: right;">
+                                    ${viewBtn}
                                     ${deleteBtn}
                                 </td>
                             `;

@@ -60,10 +60,15 @@ app.post('/api/login', (req, res) => {
 
 // Create User Endpoint
 app.post('/api/users', (req, res) => {
-    const { username, password, role } = req.body;
+    const { username, password, role, creatorUsername } = req.body;
 
     if (!username || !password || !role) {
         return res.status(400).json({ success: false, message: 'Tous les champs sont requis' });
+    }
+
+    // Role Restriction: Only 'admin' can create 'admin' users
+    if (role === 'admin' && creatorUsername !== 'admin') {
+        return res.status(403).json({ success: false, message: 'Seul l\'administrateur principal peut créer d\'autres administrateurs.' });
     }
 
     const query = 'INSERT INTO users (username, password, role) VALUES (?, ?, ?)';
@@ -76,6 +81,31 @@ app.post('/api/users', (req, res) => {
             return res.status(500).json({ success: false, message: 'Erreur base de données' });
         }
         res.json({ success: true, message: 'Utilisateur créé avec succès' });
+    });
+});
+
+// Reset Password Endpoint
+app.put('/api/users/:id/password', (req, res) => {
+    const userId = req.params.id;
+    const { newPassword } = req.body;
+
+    if (!newPassword) return res.status(400).json({ success: false, message: 'Nouveau mot de passe requis' });
+
+    // Check if target is 'admin'
+    const checkQuery = 'SELECT username FROM users WHERE id = ?';
+    db.query(checkQuery, [userId], (err, results) => {
+        if (err) return res.status(500).json({ success: false, message: 'DB Error' });
+        if (results.length === 0) return res.status(404).json({ success: false, message: 'User not found' });
+
+        if (results[0].username === 'admin') {
+            return res.status(403).json({ success: false, message: 'Impossible de modifier le mot de passe de l\'administrateur principal.' });
+        }
+
+        const updateQuery = 'UPDATE users SET password = ? WHERE id = ?';
+        db.query(updateQuery, [newPassword, userId], (err, result) => {
+            if (err) return res.status(500).json({ success: false, message: 'DB Error' });
+            res.json({ success: true, message: 'Mot de passe mis à jour' });
+        });
     });
 });
 
@@ -109,6 +139,19 @@ app.delete('/api/users/:id', (req, res) => {
             if (err) return res.status(500).json({ success: false, message: 'DB Error' });
             res.json({ success: true, message: 'User deleted' });
         });
+    });
+});
+
+
+
+// Get Single User Details Endpoint (Admin only - includes password)
+app.get('/api/users/:id', (req, res) => {
+    const userId = req.params.id;
+    const query = 'SELECT * FROM users WHERE id = ?';
+    db.query(query, [userId], (err, results) => {
+        if (err) return res.status(500).json({ success: false, message: 'DB Error' });
+        if (results.length === 0) return res.status(404).json({ success: false, message: 'User not found' });
+        res.json({ success: true, user: results[0] });
     });
 });
 

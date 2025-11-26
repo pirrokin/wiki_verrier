@@ -7,6 +7,27 @@
     <title>Votre Espace - Technician Wiki</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        .info-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-size: 16px;
+            color: var(--text-primary);
+            font-weight: 500;
+            min-height: 24px;
+            /* Prevent layout shift if empty */
+        }
+
+        .info-group {
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 
 <body>
@@ -28,64 +49,51 @@
                 <h1 class="welcome-title">Votre Espace</h1>
                 <p class="welcome-subtitle">Gérez vos informations personnelles</p>
             </div>
-            <button class="btn-primary" id="editBtn" onclick="toggleEditMode()">Modifier mes infos</button>
+            <button class="btn-primary" onclick="openEditModal()">Modifier mes infos</button>
         </div>
 
         <div class="profile-grid">
-            <!-- Personal Info Card -->
+            <!-- Personal Info Card (View Only) -->
             <div class="login-card" style="max-width: 100%; text-align: left;">
-                <h2 style="margin-bottom: 20px;">Informations Personnelles</h2>
-                <form id="profileForm" autocomplete="off">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                        <div class="input-group">
-                            <label for="lastname">Nom</label>
-                            <input type="text" id="lastname" name="lastname" disabled placeholder="Non renseigné">
-                        </div>
-                        <div class="input-group">
-                            <label for="firstname">Prénom</label>
-                            <input type="text" id="firstname" name="firstname" disabled placeholder="Non renseigné">
-                        </div>
-                    </div>
+                <h2 style="margin-bottom: 30px;">Informations Personnelles</h2>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                        <div class="input-group">
-                            <label for="email">Email</label>
-                            <input type="email" id="email" name="email" disabled placeholder="Non renseigné">
-                        </div>
-                        <div class="input-group">
-                            <label for="phone">Téléphone</label>
-                            <input type="tel" id="phone" name="phone" disabled placeholder="Non renseigné">
-                        </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="info-group">
+                        <div class="info-label">Nom</div>
+                        <div class="info-value" id="viewLastname">-</div>
                     </div>
+                    <div class="info-group">
+                        <div class="info-label">Prénom</div>
+                        <div class="info-value" id="viewFirstname">-</div>
+                    </div>
+                </div>
 
-                    <div class="input-group">
-                        <label for="address">Adresse</label>
-                        <input type="text" id="address" name="address" disabled placeholder="Non renseigné">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="info-group">
+                        <div class="info-label">Email</div>
+                        <div class="info-value" id="viewEmail">-</div>
                     </div>
+                    <div class="info-group">
+                        <div class="info-label">Téléphone</div>
+                        <div class="info-value" id="viewPhone">-</div>
+                    </div>
+                </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                        <div class="input-group">
-                            <label for="birthdate">Date de naissance</label>
-                            <input type="date" id="birthdate" name="birthdate" disabled>
-                        </div>
-                        <div class="input-group">
-                            <label for="gender">Sexe</label>
-                            <select id="gender" name="gender" disabled>
-                                <option value="">Non renseigné</option>
-                                <option value="M">Homme</option>
-                                <option value="F">Femme</option>
-                                <option value="Other">Autre</option>
-                            </select>
-                        </div>
-                    </div>
+                <div class="info-group">
+                    <div class="info-label">Adresse</div>
+                    <div class="info-value" id="viewAddress">-</div>
+                </div>
 
-                    <div id="saveActions"
-                        style="display: none; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-                        <button type="button" class="nav-btn" onclick="cancelEdit()"
-                            style="border: 1px solid #333;">Annuler</button>
-                        <button type="submit" class="btn-primary">Enregistrer</button>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="info-group">
+                        <div class="info-label">Date de naissance</div>
+                        <div class="info-value" id="viewBirthdate">-</div>
                     </div>
-                </form>
+                    <div class="info-group">
+                        <div class="info-label">Sexe</div>
+                        <div class="info-value" id="viewGender">-</div>
+                    </div>
+                </div>
             </div>
 
             <!-- Future Placeholders -->
@@ -102,79 +110,144 @@
         </div>
     </div>
 
+    <!-- Edit Profile Modal -->
+    <div id="editProfileModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeEditModal()">&times;</button>
+            <h2>Modifier mes informations</h2>
+            <p class="subtitle" style="margin-bottom: 20px;">Mettez à jour votre profil</p>
+
+            <form id="profileForm" autocomplete="off">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="input-group">
+                        <label for="lastname">Nom</label>
+                        <input type="text" id="lastname" name="lastname" placeholder="Votre nom">
+                    </div>
+                    <div class="input-group">
+                        <label for="firstname">Prénom</label>
+                        <input type="text" id="firstname" name="firstname" placeholder="Votre prénom">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" placeholder="exemple@email.com">
+                </div>
+
+                <div class="input-group">
+                    <label for="phone">Téléphone</label>
+                    <input type="tel" id="phone" name="phone" placeholder="06 12 34 56 78">
+                </div>
+
+                <div class="input-group">
+                    <label for="address">Adresse</label>
+                    <input type="text" id="address" name="address" placeholder="Votre adresse complète">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="input-group">
+                        <label for="birthdate">Date de naissance</label>
+                        <input type="date" id="birthdate" name="birthdate">
+                    </div>
+                    <div class="input-group">
+                        <label for="gender">Sexe</label>
+                        <select id="gender" name="gender">
+                            <option value="">Non renseigné</option>
+                            <option value="M">Homme</option>
+                            <option value="F">Femme</option>
+                            <option value="Other">Autre</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-login">Enregistrer les modifications</button>
+            </form>
+        </div>
+    </div>
+
     <script>
         const username = localStorage.getItem('username');
         if (!username) window.location.href = 'index.html';
 
-        // Check role to show/hide Adminterface button
-        // Ideally we should store role in localStorage too, or fetch it.
-        // For now, let's fetch profile which will return role too if we want, or just rely on what we have.
-
-        let isEditing = false;
+        // Elements
+        const modal = document.getElementById('editProfileModal');
         const form = document.getElementById('profileForm');
-        const inputs = form.querySelectorAll('input, select');
-        const editBtn = document.getElementById('editBtn');
-        const saveActions = document.getElementById('saveActions');
 
         // Load Profile Data
-        fetch(`/api/profile?username=${username}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    const user = data.user;
-                    if (user.role === 'admin') {
-                        document.getElementById('adminBtn').style.display = 'block';
+        function loadProfile() {
+            fetch(`/api/profile?username=${username}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const user = data.user;
+                        if (user.role === 'admin') {
+                            document.getElementById('adminBtn').style.display = 'block';
+                        }
+
+                        // Update View
+                        document.getElementById('viewLastname').innerText = user.lastname || 'Non renseigné';
+                        document.getElementById('viewFirstname').innerText = user.firstname || 'Non renseigné';
+                        document.getElementById('viewEmail').innerText = user.email || 'Non renseigné';
+                        document.getElementById('viewPhone').innerText = user.phone || 'Non renseigné';
+                        document.getElementById('viewAddress').innerText = user.address || 'Non renseigné';
+
+                        if (user.birthdate) {
+                            const date = new Date(user.birthdate);
+                            document.getElementById('viewBirthdate').innerText = date.toLocaleDateString('fr-FR');
+                            // Pre-fill form input (needs YYYY-MM-DD)
+                            document.getElementById('birthdate').value = date.toISOString().split('T')[0];
+                        } else {
+                            document.getElementById('viewBirthdate').innerText = 'Non renseigné';
+                            document.getElementById('birthdate').value = '';
+                        }
+
+                        const genderMap = { 'M': 'Homme', 'F': 'Femme', 'Other': 'Autre' };
+                        document.getElementById('viewGender').innerText = genderMap[user.gender] || 'Non renseigné';
+
+                        // Pre-fill form inputs
+                        document.getElementById('lastname').value = user.lastname || '';
+                        document.getElementById('firstname').value = user.firstname || '';
+                        document.getElementById('email').value = user.email || '';
+                        document.getElementById('phone').value = user.phone || '';
+                        document.getElementById('address').value = user.address || '';
+                        document.getElementById('gender').value = user.gender || '';
                     }
+                });
+        }
 
-                    // Populate fields
-                    document.getElementById('lastname').value = user.lastname || '';
-                    document.getElementById('firstname').value = user.firstname || '';
-                    document.getElementById('email').value = user.email || '';
-                    document.getElementById('phone').value = user.phone || '';
-                    document.getElementById('address').value = user.address || '';
+        // Modal Functions
+        function openEditModal() {
+            modal.classList.add('active');
+        }
 
-                    if (user.birthdate) {
-                        // Format date to YYYY-MM-DD for input type=date
-                        const date = new Date(user.birthdate);
-                        document.getElementById('birthdate').value = date.toISOString().split('T')[0];
-                    }
+        function closeEditModal() {
+            modal.classList.remove('active');
+        }
 
-                    document.getElementById('gender').value = user.gender || '';
-                }
-            });
-
-        function toggleEditMode() {
-            isEditing = !isEditing;
-            inputs.forEach(input => input.disabled = !isEditing);
-
-            if (isEditing) {
-                editBtn.style.display = 'none';
-                saveActions.style.display = 'flex';
-            } else {
-                editBtn.style.display = 'block';
-                saveActions.style.display = 'none';
+        window.onclick = function (event) {
+            if (event.target == modal) {
+                closeEditModal();
             }
         }
 
-        function cancelEdit() {
-            toggleEditMode();
-            // Reload data to reset changes
-            location.reload();
-        }
-
+        // Handle Form Submit
         form.addEventListener('submit', (e) => {
             e.preventDefault();
 
             const formData = {
                 username: username,
-                lastname: form.lastname.value,
-                firstname: form.firstname.value,
-                email: form.email.value,
-                phone: form.phone.value,
-                address: form.address.value,
-                birthdate: form.birthdate.value,
-                gender: form.gender.value
+                lastname: document.getElementById('lastname').value,
+                firstname: document.getElementById('firstname').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                address: document.getElementById('address').value,
+                birthdate: document.getElementById('birthdate').value || null,
+                gender: document.getElementById('gender').value || null
             };
+
+            const btn = e.target.querySelector('button');
+            const originalText = btn.innerText;
+            btn.innerText = 'Enregistrement...';
 
             fetch('/api/profile', {
                 method: 'PUT',
@@ -184,13 +257,24 @@
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
-                        alert('Profil mis à jour !');
-                        toggleEditMode(); // Disable edit mode
+                        closeEditModal();
+                        loadProfile(); // Refresh view
+                        // Optional: Show a small toast notification instead of alert
                     } else {
                         alert('Erreur : ' + data.message);
                     }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Erreur technique');
+                })
+                .finally(() => {
+                    btn.innerText = originalText;
                 });
         });
+
+        // Initial Load
+        loadProfile();
     </script>
 </body>
 

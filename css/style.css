@@ -113,6 +113,22 @@ body {
     background-color: var(--accent-hover);
 }
 
+.btn-danger {
+    padding: 12px 24px;
+    background-color: var(--error-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-danger:hover {
+    background-color: #b00020;
+}
+
 /* Modal */
 .modal {
     display: none;

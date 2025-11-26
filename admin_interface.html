@@ -90,6 +90,21 @@
         </div>
     </div>
 
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeDeleteModal()">&times;</button>
+            <h2>Confirmer la suppression</h2>
+            <p class="subtitle" style="margin-bottom: 20px;">Êtes-vous sûr de vouloir supprimer cet utilisateur ?</p>
+            <p id="deleteUserName" style="color: white; font-weight: bold; margin-bottom: 20px;"></p>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button class="nav-btn" onclick="closeDeleteModal()" style="border: 1px solid #333;">Annuler</button>
+                <button id="confirmDeleteBtn" class="btn-danger">Supprimer</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Retrieve username from localStorage
         const username = localStorage.getItem('username');
@@ -97,8 +112,10 @@
             window.location.href = 'index.html';
         }
 
-        // Modal Logic
+        // Modal Logic (Add User)
         const modal = document.getElementById('userModal');
+        const deleteModal = document.getElementById('deleteModal');
+        let userToDeleteId = null;
 
         function openModal() {
             modal.classList.add('active');
@@ -111,10 +128,24 @@
             document.getElementById('passwordError').style.display = 'none';
         }
 
+        function openDeleteModal(id, name) {
+            userToDeleteId = id;
+            document.getElementById('deleteUserName').innerText = name;
+            deleteModal.classList.add('active');
+        }
+
+        function closeDeleteModal() {
+            deleteModal.classList.remove('active');
+            userToDeleteId = null;
+        }
+
         // Close modal if clicking outside
         window.onclick = function (event) {
             if (event.target == modal) {
                 closeModal();
+            }
+            if (event.target == deleteModal) {
+                closeDeleteModal();
             }
         }
 
@@ -166,6 +197,22 @@
                 });
         });
 
+        // Handle Delete Confirmation
+        document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
+            if (userToDeleteId) {
+                fetch(`/api/users/${userToDeleteId}`, { method: 'DELETE' })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            closeDeleteModal();
+                            loadUsers();
+                        } else {
+                            alert('Erreur : ' + data.message);
+                        }
+                    });
+            }
+        });
+
         // Load Users Function
         function loadUsers() {
             fetch('/api/users')
@@ -182,14 +229,15 @@
                             const isAdmin = user.username === 'admin'; // Main admin
 
                             let deleteBtn = '';
-                            if (!isAdmin) {
-                                deleteBtn = `<button class="btn-delete" onclick="deleteUser(${user.id}, '${user.username}')" title="Supprimer">
+                            if (isMe) {
+                                deleteBtn = `<span style="color: #555; font-size: 12px;">Vous</span>`;
+                            } else if (!isAdmin) {
+                                deleteBtn = `<button class="btn-delete" onclick="openDeleteModal(${user.id}, '${user.username}')" title="Supprimer">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                 </button>`;
                             } else {
                                 deleteBtn = `<span style="color: #555; font-size: 12px;">Protégé</span>`;
                             }
-
                             tr.innerHTML = `
                                 <td>
                                     <div style="font-weight: 500; color: white;">${user.username} ${isMe ? '(Vous)' : ''}</div>
@@ -206,20 +254,6 @@
                         });
                     }
                 });
-        }
-
-        function deleteUser(id, username) {
-            if (confirm(`Êtes-vous sûr de vouloir supprimer l'utilisateur "${username}" ?`)) {
-                fetch(`/api/users/${id}`, { method: 'DELETE' })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            loadUsers();
-                        } else {
-                            alert('Erreur : ' + data.message);
-                        }
-                    });
-            }
         }
 
         // Initial Load

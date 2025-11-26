@@ -139,6 +139,35 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Security Section Logic ---
     if (securityEditMode && editSecurityBtn && cancelSecurityBtn && saveSecurityBtn) {
 
+        // Password Complexity Logic
+        const newPasswordInput = document.getElementById('newPassword');
+        const reqLength = document.getElementById('req-length');
+        const reqUpper = document.getElementById('req-upper');
+        const reqNumber = document.getElementById('req-number');
+        const reqSpecial = document.getElementById('req-special');
+
+        if (newPasswordInput) {
+            newPasswordInput.addEventListener('input', () => {
+                const val = newPasswordInput.value;
+
+                // Check Length
+                if (val.length >= 8) reqLength.classList.add('valid');
+                else reqLength.classList.remove('valid');
+
+                // Check Upper
+                if (/[A-Z]/.test(val)) reqUpper.classList.add('valid');
+                else reqUpper.classList.remove('valid');
+
+                // Check Number
+                if (/[0-9]/.test(val)) reqNumber.classList.add('valid');
+                else reqNumber.classList.remove('valid');
+
+                // Check Special
+                if (/[^A-Za-z0-9]/.test(val)) reqSpecial.classList.add('valid');
+                else reqSpecial.classList.remove('valid');
+            });
+        }
+
         editSecurityBtn.addEventListener('click', () => {
             securityViewMode.style.display = 'none';
             securityEditMode.style.display = 'grid';
@@ -150,6 +179,10 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('currentPassword').value = '';
             document.getElementById('newPassword').value = '';
             document.getElementById('confirmNewPassword').value = '';
+
+            // Reset Error & Validation UI
+            document.getElementById('currentPasswordError').style.display = 'none';
+            document.querySelectorAll('.req-item').forEach(el => el.classList.remove('valid'));
         });
 
         cancelSecurityBtn.addEventListener('click', () => {
@@ -168,15 +201,34 @@ document.addEventListener('DOMContentLoaded', () => {
             const currentPassword = document.getElementById('currentPassword').value;
             const newPassword = document.getElementById('newPassword').value;
             const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+            const errorDiv = document.getElementById('currentPasswordError');
+
+            // Reset Error
+            errorDiv.style.display = 'none';
+            errorDiv.innerText = '';
 
             if (!currentPassword) {
-                alert('Le mot de passe actuel est obligatoire.');
+                errorDiv.innerText = 'Le mot de passe actuel est obligatoire.';
+                errorDiv.style.display = 'block';
                 return;
             }
 
-            if (newPassword && newPassword !== confirmNewPassword) {
-                alert('Les nouveaux mots de passe ne correspondent pas.');
-                return;
+            if (newPassword) {
+                if (newPassword !== confirmNewPassword) {
+                    alert('Les nouveaux mots de passe ne correspondent pas.');
+                    return;
+                }
+
+                // Enforce Complexity on Submit
+                const isLengthValid = newPassword.length >= 8;
+                const isUpperValid = /[A-Z]/.test(newPassword);
+                const isNumberValid = /[0-9]/.test(newPassword);
+                const isSpecialValid = /[^A-Za-z0-9]/.test(newPassword);
+
+                if (!isLengthValid || !isUpperValid || !isNumberValid || !isSpecialValid) {
+                    alert('Le nouveau mot de passe ne respecte pas les critères de sécurité.');
+                    return;
+                }
             }
 
             const btn = saveSecurityBtn;
@@ -197,19 +249,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
-                        alert('Compte mis à jour avec succès.');
-                        if ((data.newUsername && data.newUsername !== currentUsername) || newPassword) {
-                            alert('Vos identifiants ont changé. Veuillez vous reconnecter.');
-                            localStorage.removeItem('username');
-                            window.location.href = 'index.html';
-                        } else {
+                        alert('Modifications enregistrées avec succès !');
+
+                        // Update UI without redirect
+                        if (data.newUsername && data.newUsername !== currentUsername) {
                             if (document.getElementById('viewUsername')) {
-                                document.getElementById('viewUsername').textContent = data.newUsername || currentUsername;
+                                document.getElementById('viewUsername').textContent = data.newUsername;
                             }
-                            cancelSecurityBtn.click();
+                            // Update local storage if username changed
+                            localStorage.setItem('username', data.newUsername);
                         }
+
+                        cancelSecurityBtn.click();
                     } else {
-                        alert('Erreur: ' + data.message);
+                        // Handle specific errors
+                        if (data.message === 'Mot de passe actuel incorrect') {
+                            errorDiv.innerText = 'Mot de passe incorrect.';
+                            errorDiv.style.display = 'block';
+                        } else {
+                            alert('Erreur: ' + data.message);
+                        }
                     }
                 })
                 .catch(err => {

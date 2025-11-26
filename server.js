@@ -347,6 +347,6 @@ app.get('/api/search', (req, res) => {
 });
 
 // Start Server
-app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
+app.listen(port, () => {
+    console.log(`Server running at http://localhost:${port}`);
 });

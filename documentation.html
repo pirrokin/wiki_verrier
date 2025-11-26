@@ -244,6 +244,19 @@
         </div>
     </div>
 
+    <!-- Confirm Modal -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <h2 style="margin-bottom: 10px;">Confirmation</h2>
+            <p id="confirmMessage" style="margin-bottom: 25px; color: var(--text-secondary);">Êtes-vous sûr ?</p>
+            <div style="display: flex; justify-content: center; gap: 15px;">
+                <button type="button" class="btn-secondary" onclick="closeModal('confirmModal')">Annuler</button>
+                <button type="button" class="btn-primary" id="confirmActionBtn"
+                    style="background-color: #ff5252;">Supprimer</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Retrieve username from localStorage
         const username = localStorage.getItem('username');
@@ -375,19 +388,35 @@
             }
         }
 
+        let pendingDeleteAction = null;
+
+        function showConfirm(message, action) {
+            document.getElementById('confirmMessage').textContent = message;
+            pendingDeleteAction = action;
+            document.getElementById('confirmModal').classList.add('active');
+        }
+
+        document.getElementById('confirmActionBtn').addEventListener('click', () => {
+            if (pendingDeleteAction) {
+                pendingDeleteAction();
+                pendingDeleteAction = null;
+            }
+            closeModal('confirmModal');
+        });
+
         function deleteCategory(id) {
-            if (confirm('Êtes-vous sûr de vouloir supprimer cette catégorie et tous ses processus ?')) {
+            showConfirm('Êtes-vous sûr de vouloir supprimer cette catégorie et tous ses processus ?', () => {
                 fetch(`/api/categories/${id}`, { method: 'DELETE' })
                     .then(res => res.json())
                     .then(data => {
                         if (data.success) loadCategories();
                         else alert('Erreur: ' + data.message);
                     });
-            }
+            });
         }
 
         function deleteProcess(id) {
-            if (confirm('Êtes-vous sûr de vouloir supprimer ce processus ?')) {
+            showConfirm('Êtes-vous sûr de vouloir supprimer ce processus ?', () => {
                 fetch(`/api/processes/${id}`, { method: 'DELETE' })
                     .then(res => res.json())
                     .then(data => {
@@ -403,7 +432,7 @@
                         }
                         else alert('Erreur: ' + data.message);
                     });
-            }
+            });
         }
 
         // --- Process Viewing ---

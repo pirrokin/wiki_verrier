@@ -120,7 +120,8 @@
 
                 <!-- Edit Mode -->
                 <form id="securityEditMode" class="profile-form"
-                    style="display: none; grid-template-columns: 1fr; gap: 15px;" autocomplete="off">
+                    style="display: none; grid-template-columns: 1fr; gap: 15px;" autocomplete="off"
+                    onsubmit="alert('Inline submit triggered')">
                     <div class="input-group">
                         <label>Nouvel Identifiant</label>
                         <input type="text" id="editUsername" class="form-input"
@@ -150,7 +151,7 @@
                     <div class="form-actions"
                         style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
                         <button type="button" class="btn-secondary" id="cancelSecurityBtn">Annuler</button>
-                        <button type="submit" class="btn-primary">Enregistrer</button>
+                        <button type="submit" class="btn-primary" id="saveSecurityBtn">Enregistrer</button>
                     </div>
                 </form>
             </div>
@@ -224,189 +225,7 @@
         </div>
     </div>
 
-    <script>
-        const username = localStorage.getItem('username');
-        if (!username) window.location.href = 'index.html';
-
-        // Elements
-        const modal = document.getElementById('editProfileModal');
-        const form = document.getElementById('profileForm');
-
-        // --- Security Section Logic ---
-        const securityViewMode = document.getElementById('securityViewMode');
-        const securityEditMode = document.getElementById('securityEditMode');
-        const editSecurityBtn = document.getElementById('editSecurityBtn');
-        const cancelSecurityBtn = document.getElementById('cancelSecurityBtn');
-
-        editSecurityBtn.addEventListener('click', () => {
-            securityViewMode.style.display = 'none';
-            securityEditMode.style.display = 'grid';
-            editSecurityBtn.style.display = 'none';
-            document.getElementById('editUsername').value = document.getElementById('viewUsername').textContent;
-            document.getElementById('currentPassword').value = '';
-            document.getElementById('newPassword').value = '';
-            document.getElementById('confirmNewPassword').value = '';
-        });
-
-        cancelSecurityBtn.addEventListener('click', () => {
-            securityEditMode.style.display = 'none';
-            securityViewMode.style.display = 'grid';
-            editSecurityBtn.style.display = 'block';
-        });
-
-        securityEditMode.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const currentUsername = username; // From localStorage
-            const newUsername = document.getElementById('editUsername').value;
-            const currentPassword = document.getElementById('currentPassword').value;
-            const newPassword = document.getElementById('newPassword').value;
-            const confirmNewPassword = document.getElementById('confirmNewPassword').value;
-
-            if (newPassword && newPassword !== confirmNewPassword) {
-                alert('Les nouveaux mots de passe ne correspondent pas.');
-                return;
-            }
-
-            fetch('/api/account', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    currentUsername,
-                    currentPassword,
-                    newUsername: newUsername !== currentUsername ? newUsername : null,
-                    newPassword: newPassword || null
-                })
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Compte mis à jour avec succès.');
-                        if (data.newUsername !== currentUsername || newPassword) {
-                            alert('Vos identifiants ont changé. Veuillez vous reconnecter.');
-                            localStorage.removeItem('username');
-                            window.location.href = 'index.html';
-                        } else {
-                            // Just refresh view
-                            document.getElementById('viewUsername').textContent = currentUsername; // Or new if changed but no logout logic triggered (unlikely)
-                            cancelSecurityBtn.click();
-                        }
-                    } else {
-                        alert('Erreur: ' + data.message);
-                    }
-                })
-                .catch(err => console.error(err));
-        });
-
-        // Load Profile Data
-        function loadProfile() {
-            fetch(`/api/profile?username=${username}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        const user = data.user;
-
-                        // Role-based UI
-                        if (user.role !== 'admin') {
-                            document.getElementById('adminInterfaceBtn').style.display = 'none';
-                            document.getElementById('homeBtn').onclick = () => window.location.href = 'technician.html';
-                        }
-
-                        // Update View
-                        document.getElementById('viewLastname').innerText = user.lastname || 'Non renseigné';
-                        document.getElementById('viewFirstname').innerText = user.firstname || 'Non renseigné';
-                        document.getElementById('viewEmail').innerText = user.email || 'Non renseigné';
-                        document.getElementById('viewPhone').innerText = user.phone || 'Non renseigné';
-                        document.getElementById('viewAddress').innerText = user.address || 'Non renseigné';
-
-                        if (user.birthdate) {
-                            const date = new Date(user.birthdate);
-                            document.getElementById('viewBirthdate').innerText = date.toLocaleDateString('fr-FR');
-                            // Pre-fill form input (needs YYYY-MM-DD)
-                            document.getElementById('birthdate').value = date.toISOString().split('T')[0];
-                        } else {
-                            document.getElementById('viewBirthdate').innerText = 'Non renseigné';
-                            document.getElementById('birthdate').value = '';
-                        }
-
-                        const genderMap = { 'M': 'Homme', 'F': 'Femme', 'Other': 'Autre' };
-                        document.getElementById('viewGender').innerText = genderMap[user.gender] || 'Non renseigné';
-
-                        // Pre-fill form inputs
-                        document.getElementById('lastname').value = user.lastname || '';
-                        document.getElementById('firstname').value = user.firstname || '';
-                        document.getElementById('email').value = user.email || '';
-                        document.getElementById('phone').value = user.phone || '';
-                        document.getElementById('address').value = user.address || '';
-                        document.getElementById('address').value = user.address || '';
-                        document.getElementById('gender').value = user.gender || '';
-
-                        // Security View
-                        document.getElementById('viewUsername').textContent = user.username;
-                    }
-                });
-        }
-
-        // Modal Functions
-        function openEditModal() {
-            modal.classList.add('active');
-        }
-
-        function closeEditModal() {
-            modal.classList.remove('active');
-        }
-
-        window.onclick = function (event) {
-            if (event.target == modal) {
-                closeEditModal();
-            }
-        }
-
-        // Handle Form Submit
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-
-            const formData = {
-                username: username,
-                lastname: document.getElementById('lastname').value,
-                firstname: document.getElementById('firstname').value,
-                email: document.getElementById('email').value,
-                phone: document.getElementById('phone').value,
-                address: document.getElementById('address').value,
-                birthdate: document.getElementById('birthdate').value || null,
-                gender: document.getElementById('gender').value || null
-            };
-
-            const btn = e.target.querySelector('button');
-            const originalText = btn.innerText;
-            btn.innerText = 'Enregistrement...';
-
-            fetch('/api/profile', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        closeEditModal();
-                        loadProfile(); // Refresh view
-                        // Optional: Show a small toast notification instead of alert
-                    } else {
-                        alert('Erreur : ' + data.message);
-                    }
-                })
-                .catch(err => {
-                    console.error(err);
-                    alert('Erreur technique');
-                })
-                .finally(() => {
-                    btn.innerText = originalText;
-                });
-        });
-
-        // Initial Load
-        loadProfile();
-    </script>
+    <script src="js/profile.js"></script>
 </body>
 
 </html>

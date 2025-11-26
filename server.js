@@ -226,6 +226,62 @@ app.put('/api/profile', (req, res) => {
     });
 });
 
+// API Endpoint to update account credentials (username/password)
+app.put('/api/account', (req, res) => {
+    const { currentUsername, currentPassword, newUsername, newPassword } = req.body;
+    console.log('--- API ACCOUNT UPDATE REQUEST RECEIVED ---');
+    console.log('Body:', req.body);
+
+    if (!currentUsername || !currentPassword) {
+        return res.status(400).json({ success: false, message: 'Identifiants actuels requis' });
+    }
+
+    // Verify current password
+    const verifyQuery = 'SELECT * FROM users WHERE username = ? AND password = ?';
+    db.query(verifyQuery, [currentUsername, currentPassword], (err, results) => {
+        if (err) return res.status(500).json({ success: false, message: 'DB Error' });
+
+        if (results.length === 0) {
+            return res.status(401).json({ success: false, message: 'Mot de passe actuel incorrect' });
+        }
+
+        const user = results[0];
+        const userId = user.id;
+
+        // Prepare update
+        let updateQuery = 'UPDATE users SET ';
+        const params = [];
+        const updates = [];
+
+        if (newUsername && newUsername !== currentUsername) {
+            updates.push('username = ?');
+            params.push(newUsername);
+        }
+
+        if (newPassword) {
+            updates.push('password = ?');
+            params.push(newPassword);
+        }
+
+        if (updates.length === 0) {
+            return res.json({ success: true, message: 'Aucune modification demandée' });
+        }
+
+        updateQuery += updates.join(', ') + ' WHERE id = ?';
+        params.push(userId);
+
+        db.query(updateQuery, params, (err, result) => {
+            if (err) {
+                if (err.code === 'ER_DUP_ENTRY') {
+                    return res.status(400).json({ success: false, message: 'Cet identifiant est déjà pris' });
+                }
+                return res.status(500).json({ success: false, message: 'DB Error' });
+            }
+            res.json({ success: true, message: 'Compte mis à jour', newUsername: newUsername || currentUsername });
+        });
+    });
+});
+
 // API Endpoint for File Upload
 app.post('/api/upload', upload.single('document'), (req, res) => {
     if (!req.file) {

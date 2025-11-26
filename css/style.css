@@ -456,3 +456,47 @@ select:disabled {
     /* Background removed for transparent PNG */
     border-radius: 4px;
 }
+
+/* Animations & Documentation Enhancements */
+.delete-btn:hover {
+    color: #ff5252 !important;
+    background-color: rgba(255, 82, 82, 0.1) !important;
+}
+
+.process-list {
+    margin-left: 20px;
+    border-left: 2px solid #333;
+    padding-left: 10px;
+    margin-top: 5px;
+
+    /* Animation setup */
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.4s ease, opacity 0.4s ease;
+    display: block !important;
+    /* Override display:none to use height anim */
+}
+
+.process-list.active {
+    max-height: 500px;
+    /* Arbitrary large height */
+    opacity: 1;
+}
+
+.process-item {
+    padding: 8px;
+    font-size: 14px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.process-item:hover {
+    color: var(--text-primary);
+    background-color: rgba(255, 255, 255, 0.05);
+    transform: translateX(5px);
+}

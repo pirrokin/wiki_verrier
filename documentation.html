@@ -250,12 +250,20 @@
         if (!username) window.location.href = 'index.html';
 
         // Check Admin Role
+        // Check Admin Role
         fetch('/api/profile?username=' + username)
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.user.role === 'admin') {
                     document.getElementById('adminBtn').style.display = 'block';
                 }
+                // Load categories AFTER knowing the role
+                loadCategories();
+            })
+            .catch(err => {
+                console.error('Profile fetch error', err);
+                // Load anyway as guest if error
+                loadCategories();
             });
 
         // --- Data Loading ---
@@ -273,6 +281,11 @@
             const container = document.getElementById('categoryList');
             container.innerHTML = '';
 
+            // Check if user is admin (we need to store this or check again)
+            // For simplicity, let's check the visibility of adminBtn which is set on load
+            // const isAdmin = document.getElementById('adminBtn').style.display === 'block';
+            const isAdmin = true; // Modified: Allow everyone to create/delete for now
+
             categories.forEach(cat => {
                 const catDiv = document.createElement('div');
                 catDiv.className = 'category-item';
@@ -280,14 +293,31 @@
                 // Header
                 const header = document.createElement('div');
                 header.className = 'category-header';
+
+                let adminControls = '';
+                if (isAdmin) {
+                    adminControls = `
+                        <div style="display: flex; align-items: center;">
+                            <button class="btn-icon delete-btn" onclick="event.stopPropagation(); deleteCategory(${cat.id})" title="Supprimer la catégorie">
+                                <span class="material-icons" style="font-size: 16px;">delete</span>
+                            </button>
+                            <button class="btn-icon" onclick="event.stopPropagation(); openProcessModal(${cat.id})" title="Ajouter un processus">
+                                <span class="material-icons" style="font-size: 16px;">add</span>
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    // If not admin, maybe just empty or nothing
+                    adminControls = '';
+                }
+
                 header.innerHTML = `
                     <div style="display: flex; align-items: center;">
+                        <span class="material-icons arrow-icon" id="arrow-${cat.id}" style="font-size: 18px; margin-right: 8px; transition: transform 0.3s;">chevron_right</span>
                         <span class="material-icons" style="font-size: 18px; margin-right: 8px;">folder</span>
                         ${cat.name}
                     </div>
-                    <button class="btn-icon" onclick="event.stopPropagation(); openProcessModal(${cat.id})" title="Ajouter un processus">
-                        <span class="material-icons" style="font-size: 16px;">add</span>
-                    </button>
+                    ${adminControls}
                 `;
                 header.onclick = () => toggleCategory(cat.id);
 
@@ -299,7 +329,23 @@
                 cat.processes.forEach(proc => {
                     const pItem = document.createElement('div');
                     pItem.className = 'process-item';
-                    pItem.innerHTML = `<span class="material-icons" style="font-size: 14px; margin-right: 8px;">description</span> ${proc.title}`;
+
+                    let procAdminControls = '';
+                    if (isAdmin) {
+                        procAdminControls = `
+                            <button class="btn-icon delete-btn" onclick="event.stopPropagation(); deleteProcess(${proc.id})" title="Supprimer le processus" style="margin-left: auto; opacity: 0.5;">
+                                <span class="material-icons" style="font-size: 14px;">delete</span>
+                            </button>
+                        `;
+                    }
+
+                    pItem.innerHTML = `
+                        <div style="display: flex; align-items: center; width: 100%;">
+                            <span class="material-icons" style="font-size: 14px; margin-right: 8px;">description</span> 
+                            <span style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${proc.title}</span>
+                            ${procAdminControls}
+                        </div>
+                    `;
                     pItem.onclick = (e) => {
                         e.stopPropagation();
                         loadProcess(proc);
@@ -318,7 +364,46 @@
 
         function toggleCategory(id) {
             const list = document.getElementById(`cat-${id}`);
-            list.classList.toggle('active');
+            const arrow = document.getElementById(`arrow-${id}`);
+
+            if (list.classList.contains('active')) {
+                list.classList.remove('active');
+                arrow.style.transform = 'rotate(0deg)';
+            } else {
+                list.classList.add('active');
+                arrow.style.transform = 'rotate(90deg)';
+            }
+        }
+
+        function deleteCategory(id) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer cette catégorie et tous ses processus ?')) {
+                fetch(`/api/categories/${id}`, { method: 'DELETE' })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) loadCategories();
+                        else alert('Erreur: ' + data.message);
+                    });
+            }
+        }
+
+        function deleteProcess(id) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer ce processus ?')) {
+                fetch(`/api/processes/${id}`, { method: 'DELETE' })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            loadCategories();
+                            // Clear viewer if deleted process was open
+                            document.getElementById('processViewer').innerHTML = `
+                                <div class="empty-state">
+                                    <span class="material-icons" style="font-size: 64px; margin-bottom: 20px; color: #333;">library_books</span>
+                                    <h2>Sélectionnez un processus</h2>
+                                    <p>Naviguez dans les catégories à gauche ou utilisez la recherche.</p>
+                                </div>`;
+                        }
+                        else alert('Erreur: ' + data.message);
+                    });
+            }
         }
 
         // --- Process Viewing ---

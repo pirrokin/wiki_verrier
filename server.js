@@ -328,6 +328,25 @@ app.put('/api/processes/:id/file', upload.single('document'), (req, res) => {
     });
 });
 
+// Delete Category
+app.delete('/api/categories/:id', (req, res) => {
+    const id = req.params.id;
+    db.query('DELETE FROM categories WHERE id = ?', [id], (err, result) => {
+        if (err) return res.status(500).json({ success: false, message: 'DB Error' });
+        res.json({ success: true, message: 'Category deleted' });
+    });
+});
+
+// Delete Process
+app.delete('/api/processes/:id', (req, res) => {
+    const id = req.params.id;
+    // Optional: Delete file from uploads folder if exists (not implemented here for simplicity, but good practice)
+    db.query('DELETE FROM processes WHERE id = ?', [id], (err, result) => {
+        if (err) return res.status(500).json({ success: false, message: 'DB Error' });
+        res.json({ success: true, message: 'Process deleted' });
+    });
+});
+
 // Search Processes
 app.get('/api/search', (req, res) => {
     const { q } = req.query;

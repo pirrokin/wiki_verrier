@@ -161,7 +161,7 @@
             Technician Wiki
         </div>
         <div class="nav-links">
-            <button class="nav-btn" onclick="window.location.href='admin.html'">Accueil</button>
+            <button class="nav-btn" id="homeBtn" onclick="window.location.href='admin.html'">Accueil</button>
             <button class="nav-btn" onclick="window.location.href='pdms.html'">PDMS</button>
             <button class="nav-btn active">Documentation</button>
             <button class="nav-btn" id="adminBtn" style="display: none;"
@@ -267,8 +267,13 @@
         fetch('/api/profile?username=' + username)
             .then(res => res.json())
             .then(data => {
-                if (data.success && data.user.role === 'admin') {
-                    document.getElementById('adminBtn').style.display = 'block';
+                if (data.success) {
+                    if (data.user.role === 'admin') {
+                        document.getElementById('adminBtn').style.display = 'block';
+                    } else {
+                        // If not admin, Home goes to technician.html
+                        document.getElementById('homeBtn').onclick = () => window.location.href = 'technician.html';
+                    }
                 }
                 // Load categories AFTER knowing the role
                 loadCategories();

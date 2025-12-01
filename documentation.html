@@ -9,6 +9,42 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     <style>
+        /* Fix for Quill/Mammoth spacing issues due to global reset */
+        .ql-editor p,
+        .ql-editor div {
+            margin-bottom: 1em !important;
+            line-height: 1.6 !important;
+            display: block;
+        }
+
+        .ql-editor h1,
+        .ql-editor h2,
+        .ql-editor h3,
+        .ql-editor h4,
+        .ql-editor h5,
+        .ql-editor h6 {
+            margin-top: 1.5em !important;
+            margin-bottom: 0.5em !important;
+            font-weight: bold !important;
+        }
+
+        .ql-editor ul,
+        .ql-editor ol {
+            margin-bottom: 1em !important;
+            padding-left: 2em !important;
+        }
+
+        .ql-editor li {
+            margin-bottom: 0.5em !important;
+            list-style-type: disc;
+        }
+
+        /* Ensure empty paragraphs take up space */
+        .ql-editor p:empty {
+            height: 1.6em;
+        }
+    </style>
+    <style>
         .doc-layout {
             display: grid;
             grid-template-columns: 300px 1fr;
@@ -227,21 +263,57 @@
 
     <!-- Add Process Modal -->
     <div id="processModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="width: 800px; max-width: 90vw;">
             <button class="close-modal" onclick="closeModal('processModal')"><span
                     class="material-icons">close</span></button>
             <h2>Nouveau Processus</h2>
             <form id="addProcessForm">
                 <input type="hidden" id="targetCategoryId">
+
                 <div class="input-group">
                     <label>Titre du processus</label>
                     <input type="text" id="newProcessTitle" required placeholder="Ex: Comment imprimer">
                 </div>
+
                 <div class="input-group">
-                    <label>Fichier PDF (Optionnel)</label>
+                    <label>Type de contenu</label>
+                    <div style="display: flex; gap: 20px; margin-top: 5px;">
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="radio" name="processType" id="processTypePdf" value="pdf" checked
+                                onchange="toggleProcessType()">
+                            <span style="margin-left: 8px;">Fichier PDF</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="radio" name="processType" id="processTypeText" value="text"
+                                onchange="toggleProcessType()">
+                            <span style="margin-left: 8px;">Article Rédigé</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="radio" name="processType" id="processTypeWord" value="word"
+                                onchange="toggleProcessType()">
+                            <span style="margin-left: 8px;">Importer Word</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="pdfUploadSection" class="input-group">
+                    <label>Fichier PDF</label>
                     <input type="file" id="newProcessFile" accept=".pdf">
                 </div>
-                <button type="submit" class="btn-login">Créer</button>
+
+                <div id="wordImportSection" class="input-group" style="display: none;">
+                    <label>Fichier Word (.docx)</label>
+                    <input type="file" id="wordFileInput" accept=".docx" onchange="handleWordImport(this)">
+                    <p style="font-size: 12px; color: #888; margin-top: 5px;">Le contenu sera converti et ajouté à
+                        l'éditeur ci-dessous pour validation.</p>
+                </div>
+
+                <div id="editorSection" class="input-group" style="display: none;">
+                    <label>Contenu de l'article</label>
+                    <div id="editor-container" style="height: 300px; background: white; color: black;"></div>
+                </div>
+
+                <button type="submit" class="btn-login" style="margin-top: 20px;">Créer</button>
             </form>
         </div>
     </div>
@@ -261,9 +333,19 @@
 
     <!-- PDF.js Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+    <!-- Quill.js Library -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+    <!-- Mammoth.js Library for Word Import -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+
     <script>
         // Set worker source
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        let quill; // Global Quill instance
 
         // Retrieve username from localStorage
         const username = localStorage.getItem('username');
@@ -363,9 +445,12 @@
                         `;
                     }
 
+                    let icon = 'description'; // Default PDF icon
+                    if (proc.content) icon = 'article'; // Article icon
+
                     pItem.innerHTML = `
                         <div style="display: flex; align-items: center; width: 100%;">
-                            <span class="material-icons" style="font-size: 14px; margin-right: 8px;">description</span> 
+                            <span class="material-icons" style="font-size: 14px; margin-right: 8px;">${icon}</span>
                             <span style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${proc.title}</span>
                             ${procAdminControls}
                         </div>
@@ -455,7 +540,16 @@
                     <h2 style="margin: 0;">${process.title}</h2>
             `;
 
-            if (process.file_path) {
+            if (process.content) {
+                // Render HTML Content
+                content += `</div>
+                <div class="ql-snow">
+                    <div class="ql-editor" style="padding: 0;">
+                        ${process.content}
+                    </div>
+                </div>`;
+            } else if (process.file_path) {
+                // Render PDF
                 content += `
                     <a href="/uploads/${process.file_path}" download class="btn-view" title="Télécharger">
                         <span class="material-icons">download</span>
@@ -469,6 +563,7 @@
                 // Render PDF after content is set
                 setTimeout(() => renderPDF(`/uploads/${process.file_path}`), 0);
             } else {
+                // Empty State
                 content += `</div>
                 <div class="empty-state">
                     <span class="material-icons" style="font-size: 48px; margin-bottom: 20px;">upload_file</span>
@@ -541,8 +636,6 @@
                     if (data.success) {
                         // Render flat list of results in sidebar temporarily or filter existing
                         // For simplicity, let's just show results in the main area or filter the sidebar
-                        // Let's filter the sidebar visually? Or just show a "Search Results" category.
-                        // Actually, user asked for "intelligent search".
                         // Let's render a special "Search Results" view in the sidebar.
                         const container = document.getElementById('categoryList');
                         container.innerHTML = `<div class="category-header">Résultats de recherche</div>`;
@@ -572,6 +665,83 @@
         function openProcessModal(catId) {
             document.getElementById('targetCategoryId').value = catId;
             document.getElementById('processModal').classList.add('active');
+
+            // Reset UI
+            document.getElementById('processTypePdf').checked = true;
+            toggleProcessType();
+
+            // Initialize Quill if not already done
+            if (!quill) {
+                quill = new Quill('#editor-container', {
+                    theme: 'snow',
+                    modules: {
+                        toolbar: [
+                            [{ 'header': [1, 2, 3, false] }],
+                            ['bold', 'italic', 'underline', 'strike'],
+                            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                            [{ 'color': [] }, { 'background': [] }],
+                            ['link', 'image'],
+                            ['clean']
+                        ]
+                    }
+                });
+            } else {
+                quill.setText(''); // Clear editor
+            }
+
+            // Reset Word input
+            document.getElementById('wordFileInput').value = '';
+        }
+
+        function toggleProcessType() {
+            const type = document.querySelector('input[name="processType"]:checked').value;
+
+            document.getElementById('pdfUploadSection').style.display = 'none';
+            document.getElementById('editorSection').style.display = 'none';
+            document.getElementById('wordImportSection').style.display = 'none';
+
+            if (type === 'pdf') {
+                document.getElementById('pdfUploadSection').style.display = 'block';
+            } else if (type === 'text') {
+                document.getElementById('editorSection').style.display = 'block';
+            } else if (type === 'word') {
+                document.getElementById('wordImportSection').style.display = 'block';
+                document.getElementById('editorSection').style.display = 'block'; // Show editor to see result
+            }
+        }
+
+        function handleWordImport(input) {
+            if (input.files.length === 0) return;
+
+            const file = input.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function (event) {
+                const arrayBuffer = event.target.result;
+
+                const options = {
+                    ignoreEmptyParagraphs: false // Preserve empty lines/spacing
+                };
+
+                mammoth.convertToHtml({ arrayBuffer: arrayBuffer }, options)
+                    .then(displayResult)
+                    .catch(handleError);
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        function displayResult(result) {
+            quill.clipboard.dangerouslyPasteHTML(result.value);
+            // Switch to text mode so user can edit
+            document.getElementById('processTypeText').checked = true;
+            toggleProcessType();
+            alert('Import terminé ! Vous pouvez maintenant modifier le contenu.');
+        }
+
+        function handleError(err) {
+            console.error(err);
+            alert('Erreur lors de l\'import du fichier Word.');
         }
 
         function closeModal(modalId) {
@@ -635,13 +805,21 @@
             e.preventDefault();
             const catId = document.getElementById('targetCategoryId').value;
             const title = document.getElementById('newProcessTitle').value;
-            const fileInput = document.getElementById('newProcessFile');
+            const type = document.querySelector('input[name="processType"]:checked').value;
 
             const formData = new FormData();
             formData.append('category_id', catId);
             formData.append('title', title);
-            if (fileInput.files.length > 0) {
-                formData.append('document', fileInput.files[0]);
+
+            if (type === 'pdf') {
+                const fileInput = document.getElementById('newProcessFile');
+                if (fileInput.files.length > 0) {
+                    formData.append('document', fileInput.files[0]);
+                }
+            } else {
+                // Text OR Word (since Word converts to text)
+                const content = quill.root.innerHTML;
+                formData.append('content', content);
             }
 
             fetch('/api/processes', {

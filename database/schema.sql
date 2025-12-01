@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS processes (
     category_id INT,
     title VARCHAR(255) NOT NULL,
     file_path VARCHAR(255),
+    content LONGTEXT, -- Stores HTML content for rich text articles
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
 );

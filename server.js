@@ -27,7 +27,10 @@ const storage = multer.diskStorage({
     }
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({
+    storage: storage,
+    limits: { fieldSize: 25 * 1024 * 1024 } // 25MB limit for rich text content (base64 images)
+});
 
 // Middleware
 app.use(cors());
@@ -305,7 +308,7 @@ app.get('/api/documents', (req, res) => {
 app.get('/api/categories', (req, res) => {
     const query = `
         SELECT c.id as category_id, c.name as category_name, 
-               p.id as process_id, p.title as process_title, p.file_path
+               p.id as process_id, p.title as process_title, p.file_path, p.content
         FROM categories c
         LEFT JOIN processes p ON c.id = p.category_id
         ORDER BY c.name, p.title
@@ -333,7 +336,8 @@ app.get('/api/categories', (req, res) => {
                 categoryMap.get(row.category_id).processes.push({
                     id: row.process_id,
                     title: row.process_title,
-                    file_path: row.file_path
+                    file_path: row.file_path,
+                    content: row.content
                 });
             }
         });
@@ -349,55 +353,64 @@ app.post('/api/categories', (req, res) => {
 
     db.query('INSERT INTO categories (name) VALUES (?)', [name], (err, result) => {
         if (err) {
-            if (err.code === 'ER_DUP_ENTRY') return res.status(400).json({ success: false, message: 'Category already exists' });
+            if (err.code === 'ER_DUP_ENTRY') return res.status(400).json({ success: false, message: 'Category exists' });
             return res.status(500).json({ success: false, message: 'DB Error' });
         }
-        res.json({ success: true, id: result.insertId, name: name });
+        res.json({ success: true, id: result.insertId });
     });
 });
 
 // Create Process
 app.post('/api/processes', upload.single('document'), (req, res) => {
-    const { category_id, title } = req.body;
+    const { category_id, title, content } = req.body;
     const file_path = req.file ? req.file.filename : null;
 
-    if (!category_id || !title) return res.status(400).json({ success: false, message: 'Category and Title required' });
+    if (!category_id || !title) {
+        return res.status(400).json({ success: false, message: 'Category and Title required' });
+    }
 
-    const query = 'INSERT INTO processes (category_id, title, file_path) VALUES (?, ?, ?)';
-    db.query(query, [category_id, title, file_path], (err, result) => {
+    const query = 'INSERT INTO processes (category_id, title, file_path, content) VALUES (?, ?, ?, ?)';
+    db.query(query, [category_id, title, file_path, content], (err, result) => {
         if (err) return res.status(500).json({ success: false, message: 'DB Error' });
-        res.json({ success: true, id: result.insertId, title: title, file_path: file_path });
+        res.json({ success: true, id: result.insertId });
     });
 });
 
 // Update Process File (Upload)
 app.put('/api/processes/:id/file', upload.single('document'), (req, res) => {
     const processId = req.params.id;
-    if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
+    if (!req.file) return res.status(400).json({ success: false, message: 'No file' });
 
     const query = 'UPDATE processes SET file_path = ? WHERE id = ?';
     db.query(query, [req.file.filename, processId], (err, result) => {
         if (err) return res.status(500).json({ success: false, message: 'DB Error' });
-        res.json({ success: true, message: 'File updated', file_path: req.file.filename });
+        res.json({ success: true, file_path: req.file.filename });
     });
 });
 
 // Delete Category
 app.delete('/api/categories/:id', (req, res) => {
-    const id = req.params.id;
-    db.query('DELETE FROM categories WHERE id = ?', [id], (err, result) => {
+    db.query('DELETE FROM categories WHERE id = ?', [req.params.id], (err, result) => {
         if (err) return res.status(500).json({ success: false, message: 'DB Error' });
-        res.json({ success: true, message: 'Category deleted' });
+        res.json({ success: true });
     });
 });
 
 // Delete Process
 app.delete('/api/processes/:id', (req, res) => {
-    const id = req.params.id;
-    // Optional: Delete file from uploads folder if exists (not implemented here for simplicity, but good practice)
-    db.query('DELETE FROM processes WHERE id = ?', [id], (err, result) => {
+    // First get file path to delete file
+    db.query('SELECT file_path FROM processes WHERE id = ?', [req.params.id], (err, results) => {
         if (err) return res.status(500).json({ success: false, message: 'DB Error' });
-        res.json({ success: true, message: 'Process deleted' });
+
+        if (results.length > 0 && results[0].file_path) {
+            const filePath = path.join(__dirname, 'uploads', results[0].file_path);
+            if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        }
+
+        db.query('DELETE FROM processes WHERE id = ?', [req.params.id], (err, result) => {
+            if (err) return res.status(500).json({ success: false, message: 'DB Error' });
+            res.json({ success: true });
+        });
     });
 });
 
@@ -417,6 +430,32 @@ app.get('/api/search', (req, res) => {
         if (err) return res.status(500).json({ success: false, message: 'DB Error' });
         res.json({ success: true, results: results });
     });
+});
+
+// --- Startup Migration Check ---
+// Ensure 'content' column exists in processes table
+const migrationQuery = `
+    SELECT count(*) as count 
+    FROM information_schema.columns 
+    WHERE table_schema = 'technician_wiki' 
+    AND table_name = 'processes' 
+    AND column_name = 'content';
+`;
+
+db.query(migrationQuery, (err, results) => {
+    if (!err && results[0].count == 0) {
+        console.log('Migrating DB: Adding content column to processes table...');
+        db.query('ALTER TABLE processes ADD COLUMN content LONGTEXT', (err) => {
+            if (err) console.error('Migration failed:', err);
+            else console.log('Migration successful.');
+        });
+    }
+});
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+    console.error('Unhandled Error:', err);
+    res.status(500).json({ success: false, message: 'Internal Server Error: ' + err.message });
 });
 
 // Start Server

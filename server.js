@@ -40,11 +40,14 @@ app.use(express.static('.')); // Serve static files from current directory
 app.use('/uploads', express.static('uploads')); // Serve uploaded files explicitly
 
 // Database Connection (Placeholder - will need real credentials)
+require('dotenv').config();
+
+// Database Connection
 const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',      // Default MySQL user
-    password: '',      // Default is often empty, or 'root'
-    database: 'technician_wiki'
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'technician_wiki'
 });
 
 // Test DB Connection

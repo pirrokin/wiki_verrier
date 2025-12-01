@@ -5,7 +5,7 @@ Une application web de gestion de procédures techniques ("Wiki") avec gestion d
 ## 🚀 Fonctionnalités Actuelles
 
 - **Interface Moderne** : Design sombre (Dark Mode) avec accents violets, icônes Material Design et fond animé "Aurora" sur la page de connexion.
-- **Authentification** : Système de connexion sécurisé avec gestion de session.
+- **Authentification** : Système de connexion sécurisé avec gestion de session. 
 - **Gestion des Rôles** :
   - **Admin** : Accès complet (Gestion utilisateurs, Création/Suppression de catégories et processus).
   - **Technicien** : Accès en lecture seule aux documentations.

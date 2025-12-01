@@ -204,30 +204,48 @@ body {
     color: white;
 }
 
+/* Aurora Background */
+#aurora-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background: #000;
+    /* Fallback */
+}
+
 /* Login Page Specifics */
 .login-body {
     display: flex;
-    align-items: center;
     justify-content: center;
-    height: 100vh;
+    align-items: center;
+    min-height: 100vh;
+    background: transparent;
+    /* Let Aurora show through */
+    position: relative;
+    overflow: hidden;
 }
 
 .login-container {
     width: 100%;
+    max-width: 400px;
     padding: 20px;
-    display: flex;
-    justify-content: center;
+    z-index: 1;
 }
 
 .login-card {
-    background-color: var(--card-bg);
+    background: rgba(30, 30, 30, 0.6);
+    /* Semi-transparent */
+    backdrop-filter: blur(12px);
+    /* Glassmorphism */
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     padding: 40px;
     border-radius: 16px;
-    width: 100%;
-    max-width: 400px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     text-align: center;
-    border: 1px solid #333;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
 
 .logo-placeholder {

@@ -105,6 +105,116 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- Image Cropping Logic ---
+    let cropper;
+    let croppedBlob = null;
+    const imageToCrop = document.getElementById('imageToCrop');
+    const cropModal = document.getElementById('cropModal');
+    const fileInput = document.getElementById('profile_picture');
+    const zoomSlider = document.getElementById('zoomSlider');
+    const resetCropBtn = document.getElementById('resetCropBtn');
+    let initialZoomRatio = 0; // To store the initial zoom level
+
+    if (fileInput) {
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imageToCrop.src = e.target.result;
+                    cropModal.classList.add('active');
+
+                    // Initialize Cropper
+                    if (cropper) cropper.destroy();
+                    cropper = new Cropper(imageToCrop, {
+                        aspectRatio: 1,
+                        viewMode: 1,
+                        dragMode: 'move',
+                        autoCropArea: 1,
+                        restore: false,
+                        guides: false,
+                        center: false,
+                        highlight: false,
+                        cropBoxMovable: false,
+                        cropBoxResizable: false,
+                        toggleDragModeOnDblclick: false,
+                        minContainerWidth: 400,
+                        minContainerHeight: 300,
+                        ready: function () {
+                            // Reset slider
+                            zoomSlider.value = 0;
+                            // Store initial zoom ratio (ratio of current width to natural width)
+                            const imageData = cropper.getImageData();
+                            initialZoomRatio = imageData.width / imageData.naturalWidth;
+                        }
+                    });
+                };
+                reader.readAsDataURL(file);
+                // Clear input so same file can be selected again if cancelled
+                fileInput.value = '';
+            }
+        });
+    }
+
+    // Zoom Slider Logic
+    if (zoomSlider) {
+        zoomSlider.addEventListener('input', function () {
+            if (cropper) {
+                const sliderValue = parseInt(this.value);
+                // Map slider 0-100 to zoom ratio.
+                // 0 on slider means initial zoom (fit).
+                // 100 on slider means initial zoom * 3.
+                // We need to ensure initialZoomRatio is set.
+                if (initialZoomRatio === 0) { // Fallback if ready wasn't called or initialZoomRatio not set
+                    const imageData = cropper.getImageData();
+                    initialZoomRatio = imageData.width / imageData.naturalWidth;
+                }
+
+                // Calculate target ratio: linear interpolation from initialZoomRatio to initialZoomRatio * 3
+                const minZoom = initialZoomRatio;
+                const maxZoom = initialZoomRatio * 3; // Or a fixed max like 5
+                const targetRatio = minZoom + (sliderValue / 100) * (maxZoom - minZoom);
+
+                cropper.zoomTo(targetRatio);
+            }
+        });
+    }
+
+    // Reset Button
+    if (resetCropBtn) {
+        resetCropBtn.addEventListener('click', () => {
+            if (cropper) {
+                cropper.reset();
+                zoomSlider.value = 0;
+                // Recalculate initialZoomRatio after reset
+                const imageData = cropper.getImageData();
+                initialZoomRatio = imageData.width / imageData.naturalWidth;
+            }
+        });
+    }
+
+    document.getElementById('cropBtn').addEventListener('click', () => {
+        if (cropper) {
+            cropper.getCroppedCanvas({
+                width: 300,
+                height: 300
+            }).toBlob((blob) => {
+                croppedBlob = blob;
+
+                // Update Label UI
+                const label = document.getElementById('profilePicLabel');
+                if (label) {
+                    label.classList.add('file-selected');
+                    label.querySelector('.material-icons').textContent = 'check_circle';
+                    label.querySelector('.material-icons').style.color = '#00e676';
+                    label.querySelector('span:last-child').textContent = 'Photo prête à être envoyée';
+                }
+
+                closeModal('cropModal');
+            });
+        }
+    });
+
     // --- Profile Form Submit ---
     if (profileForm) {
         profileForm.addEventListener('submit', (e) => {
@@ -120,8 +230,10 @@ document.addEventListener('DOMContentLoaded', () => {
             formData.append('birthdate', document.getElementById('birthdate').value || '');
             formData.append('gender', document.getElementById('gender').value || '');
 
-            const fileInput = document.getElementById('profile_picture');
-            if (fileInput.files.length > 0) {
+            if (croppedBlob) {
+                formData.append('profile_picture', croppedBlob, 'profile.png');
+            } else if (fileInput.files.length > 0) {
+                // Fallback if crop failed or bypassed (though we clear value)
                 formData.append('profile_picture', fileInput.files[0]);
             }
 
@@ -138,6 +250,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (data.success) {
                         closeEditModal();
                         loadProfile();
+                        // Reset crop state
+                        croppedBlob = null;
+                        const label = document.getElementById('profilePicLabel');
+                        if (label) {
+                            label.classList.remove('file-selected');
+                            label.querySelector('.material-icons').textContent = 'add_a_photo';
+                            label.querySelector('.material-icons').style.color = '';
+                            label.querySelector('span:last-child').textContent = 'Choisir une nouvelle photo';
+                        }
                     } else {
                         alert('Erreur : ' + data.message);
                     }

@@ -7,7 +7,9 @@
     <title>Votre Espace - Technician Wiki</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <link rel="stylesheet" href="css/cropper-custom.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 
 <body>
@@ -214,9 +216,14 @@
 
             <form id="profileForm" autocomplete="off">
                 <div class="input-group" style="margin-bottom: 20px;">
-                    <label for="profile_picture">Photo de profil</label>
-                    <input type="file" id="profile_picture" name="profile_picture" accept="image/*"
-                        style="padding: 10px; background: #222; border: 1px solid #444; border-radius: 6px; color: white; width: 100%;">
+                    <label>Photo de profil</label>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="profile_picture" name="profile_picture" accept="image/*">
+                        <div class="file-input-label" id="profilePicLabel">
+                            <span class="material-icons">add_a_photo</span>
+                            <span>Choisir une nouvelle photo</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
@@ -274,6 +281,42 @@
         <div class="success-message">Succès !</div>
     </div>
 
+    <!-- Crop Modal -->
+    <div id="cropModal" class="modal" style="z-index: 2000;">
+        <div class="modal-content"
+            style="max-width: 450px; background-color: #313338; padding: 20px; border-radius: 8px; border: none; box-shadow: 0 0 0 1px rgba(0,0,0,0.2), 0 2px 10px rgba(0,0,0,0.5);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0; font-size: 20px; font-weight: 700; color: #f2f3f5;">Modifier l'image</h2>
+                <button class="close-modal" onclick="closeModal('cropModal')"
+                    style="position: static; font-size: 24px; color: #b5bac1;">&times;</button>
+            </div>
+
+            <div class="crop-container"
+                style="height: 300px; background: #1e1f22; margin-bottom: 20px; border-radius: 4px; overflow: hidden; position: relative;">
+                <img id="imageToCrop" src="" style="max-width: 100%; display: block;">
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 25px;">
+                <span class="material-icons" style="font-size: 20px; color: #b5bac1;">image</span>
+                <input type="range" id="zoomSlider" min="0" max="100" step="1" value="0"
+                    style="flex: 1; height: 4px; background: #4e5058; border-radius: 2px; appearance: none; outline: none;">
+                <span class="material-icons" style="font-size: 28px; color: #b5bac1;">image</span>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <button type="button" id="resetCropBtn"
+                    style="color: #f2f3f5; background: none; border: none; cursor: pointer; font-size: 14px; font-weight: 500; padding: 0;">Réinitialiser</button>
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" class="btn-secondary" onclick="closeModal('cropModal')"
+                        style="border: none; background: transparent; color: #f2f3f5; padding: 10px 20px;">Annuler</button>
+                    <button type="button" class="btn-primary" id="cropBtn"
+                        style="background-color: #5865f2; padding: 10px 24px; border-radius: 3px; transition: background-color 0.2s;">Appliquer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script src="js/profile.js"></script>
 </body>
 

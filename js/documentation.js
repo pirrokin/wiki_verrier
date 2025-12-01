@@ -147,9 +147,24 @@ function loadProcess(process, searchQuery = null) {
         `;
     }
 
+    let authorInfo = '';
+    if (process.author_name) {
+        const picUrl = process.author_picture ? `/uploads/${process.author_picture}` : 'images/default-avatar.svg';
+        authorInfo = `
+            <div style="display: flex; align-items: center; gap: 8px; margin-right: 15px; padding-right: 15px; border-right: 1px solid #444;">
+                <img src="${picUrl}" alt="${process.author_name}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">
+                <span style="font-size: 12px; color: #aaa;">${process.author_name}</span>
+                <span style="font-size: 10px; color: #666; margin-left: 5px;">${process.created_at ? new Date(process.created_at).toLocaleDateString() : ''}</span>
+            </div>
+        `;
+    }
+
     let contentHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px;">
-            <h2 style="margin: 0;">${process.title}</h2>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <h2 style="margin: 0;">${process.title}</h2>
+                ${authorInfo}
+            </div>
             <div style="display: flex; gap: 10px;">
                 ${headerControls}
                 ${process.file_path ? `<a href="/uploads/${process.file_path}" download class="btn-view" title="Télécharger"><span class="material-icons">download</span></a>` : ''}
@@ -413,6 +428,7 @@ document.getElementById('addProcessForm').addEventListener('submit', (e) => {
     const formData = new FormData();
     formData.append('category_id', catId);
     formData.append('title', title);
+    formData.append('author_username', username);
 
     if (type === 'pdf') {
         const fileInput = document.getElementById('newProcessFile');

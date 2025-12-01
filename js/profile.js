@@ -63,6 +63,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // Security View
                     setText('viewUsername', user.username);
+
+                    // Profile Picture
+                    const profilePic = document.getElementById('viewProfilePic');
+                    if (profilePic) {
+                        if (user.profile_picture) {
+                            profilePic.src = `/uploads/${user.profile_picture}`;
+                        } else {
+                            profilePic.src = 'images/default-avatar.svg';
+                        }
+                    }
                 }
             })
             .catch(err => console.error('Error loading profile:', err));
@@ -100,16 +110,20 @@ document.addEventListener('DOMContentLoaded', () => {
         profileForm.addEventListener('submit', (e) => {
             e.preventDefault();
 
-            const formData = {
-                username: username,
-                lastname: document.getElementById('lastname').value,
-                firstname: document.getElementById('firstname').value,
-                email: document.getElementById('email').value,
-                phone: document.getElementById('phone').value,
-                address: document.getElementById('address').value,
-                birthdate: document.getElementById('birthdate').value || null,
-                gender: document.getElementById('gender').value || null
-            };
+            const formData = new FormData();
+            formData.append('username', username);
+            formData.append('lastname', document.getElementById('lastname').value);
+            formData.append('firstname', document.getElementById('firstname').value);
+            formData.append('email', document.getElementById('email').value);
+            formData.append('phone', document.getElementById('phone').value);
+            formData.append('address', document.getElementById('address').value);
+            formData.append('birthdate', document.getElementById('birthdate').value || '');
+            formData.append('gender', document.getElementById('gender').value || '');
+
+            const fileInput = document.getElementById('profile_picture');
+            if (fileInput.files.length > 0) {
+                formData.append('profile_picture', fileInput.files[0]);
+            }
 
             const btn = e.target.querySelector('button[type="submit"]');
             const originalText = btn ? btn.innerText : 'Enregistrer';
@@ -117,8 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             fetch('/api/profile', {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
+                body: formData
             })
                 .then(res => res.json())
                 .then(data => {

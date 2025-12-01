@@ -192,7 +192,7 @@ app.get('/api/profile', (req, res) => {
         return res.status(400).json({ success: false, message: 'Username required' });
     }
 
-    const query = 'SELECT id, username, role, firstname, lastname, email, phone, address, birthdate, gender FROM users WHERE username = ?';
+    const query = 'SELECT id, username, role, firstname, lastname, email, phone, address, birthdate, gender, profile_picture FROM users WHERE username = ?';
     db.query(query, [username], (err, results) => {
         if (err) {
             console.error('Error fetching profile:', err);
@@ -207,29 +207,35 @@ app.get('/api/profile', (req, res) => {
 });
 
 // API Endpoint to update user profile
-app.put('/api/profile', (req, res) => {
+app.put('/api/profile', upload.single('profile_picture'), (req, res) => {
     const { username, firstname, lastname, email, phone, address, birthdate, gender } = req.body;
+    const profile_picture = req.file ? req.file.filename : undefined;
 
     if (!username) {
         return res.status(400).json({ success: false, message: 'Username required' });
     }
 
-    const query = `
+    let query = `
         UPDATE users 
         SET firstname = ?, lastname = ?, email = ?, phone = ?, address = ?, birthdate = ?, gender = ?
-        WHERE username = ?
     `;
 
-    // Handle empty strings for date/enum by converting to NULL
-    const safeBirthdate = birthdate === "" ? null : birthdate;
-    const safeGender = gender === "" ? null : gender;
+    const params = [firstname, lastname, email, phone, address, birthdate === "" ? null : birthdate, gender === "" ? null : gender];
 
-    db.query(query, [firstname, lastname, email, phone, address, safeBirthdate, safeGender, username], (err, result) => {
+    if (profile_picture) {
+        query += `, profile_picture = ?`;
+        params.push(profile_picture);
+    }
+
+    query += ` WHERE username = ?`;
+    params.push(username);
+
+    db.query(query, params, (err, result) => {
         if (err) {
             console.error('Error updating profile:', err);
             return res.status(500).json({ success: false, message: 'Database error' });
         }
-        res.json({ success: true, message: 'Profile updated successfully' });
+        res.json({ success: true, message: 'Profile updated successfully', profile_picture: profile_picture });
     });
 });
 
@@ -312,9 +318,11 @@ app.get('/api/documents', (req, res) => {
 app.get('/api/categories', (req, res) => {
     const query = `
         SELECT c.id as category_id, c.name as category_name, 
-               p.id as process_id, p.title as process_title, p.file_path, p.content
+               p.id as process_id, p.title as process_title, p.file_path, p.content, p.created_at,
+               u.username as author_name, u.profile_picture as author_picture
         FROM categories c
         LEFT JOIN processes p ON c.id = p.category_id
+        LEFT JOIN users u ON p.author_id = u.id
         ORDER BY c.name, p.title
     `;
     db.query(query, (err, results) => {
@@ -341,7 +349,9 @@ app.get('/api/categories', (req, res) => {
                     id: row.process_id,
                     title: row.process_title,
                     file_path: row.file_path,
-                    content: row.content
+                    content: row.content,
+                    author_name: row.author_name,
+                    author_picture: row.author_picture
                 });
             }
         });
@@ -366,17 +376,25 @@ app.post('/api/categories', (req, res) => {
 
 // Create Process
 app.post('/api/processes', upload.single('document'), (req, res) => {
-    const { category_id, title, content } = req.body;
+    const { category_id, title, content, author_username } = req.body;
     const file_path = req.file ? req.file.filename : null;
 
     if (!category_id || !title) {
         return res.status(400).json({ success: false, message: 'Category and Title required' });
     }
 
-    const query = 'INSERT INTO processes (category_id, title, file_path, content) VALUES (?, ?, ?, ?)';
-    db.query(query, [category_id, title, file_path, content], (err, result) => {
+    // Find author_id from username
+    const findUserQuery = 'SELECT id FROM users WHERE username = ?';
+    db.query(findUserQuery, [author_username], (err, users) => {
         if (err) return res.status(500).json({ success: false, message: 'DB Error' });
-        res.json({ success: true, id: result.insertId });
+
+        const author_id = users.length > 0 ? users[0].id : null;
+
+        const query = 'INSERT INTO processes (category_id, title, file_path, content, author_id) VALUES (?, ?, ?, ?, ?)';
+        db.query(query, [category_id, title, file_path, content, author_id], (err, result) => {
+            if (err) return res.status(500).json({ success: false, message: 'DB Error' });
+            res.json({ success: true, id: result.insertId });
+        });
     });
 });
 
@@ -512,6 +530,44 @@ db.query(migrationQuery, (err, results) => {
     if (!err && results[0].count == 0) {
         console.log('Migrating DB: Adding content column to processes table...');
         db.query('ALTER TABLE processes ADD COLUMN content LONGTEXT', (err) => {
+            if (err) console.error('Migration failed:', err);
+            else console.log('Migration successful.');
+        });
+    }
+});
+
+// Ensure 'profile_picture' column exists in users table
+const migrationProfilePicQuery = `
+    SELECT count(*) as count 
+    FROM information_schema.columns 
+    WHERE table_schema = 'technician_wiki' 
+    AND table_name = 'users' 
+    AND column_name = 'profile_picture';
+`;
+
+db.query(migrationProfilePicQuery, (err, results) => {
+    if (!err && results[0].count == 0) {
+        console.log('Migrating DB: Adding profile_picture column to users table...');
+        db.query('ALTER TABLE users ADD COLUMN profile_picture VARCHAR(255)', (err) => {
+            if (err) console.error('Migration failed:', err);
+            else console.log('Migration successful.');
+        });
+    }
+});
+
+// Ensure 'author_id' column exists in processes table
+const migrationAuthorIdQuery = `
+    SELECT count(*) as count 
+    FROM information_schema.columns 
+    WHERE table_schema = 'technician_wiki' 
+    AND table_name = 'processes' 
+    AND column_name = 'author_id';
+`;
+
+db.query(migrationAuthorIdQuery, (err, results) => {
+    if (!err && results[0].count == 0) {
+        console.log('Migrating DB: Adding author_id column to processes table...');
+        db.query('ALTER TABLE processes ADD COLUMN author_id INT', (err) => {
             if (err) console.error('Migration failed:', err);
             else console.log('Migration successful.');
         });

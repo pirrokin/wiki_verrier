@@ -7,27 +7,7 @@
     <title>Votre Espace - Technician Wiki</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
-    <style>
-        .info-label {
-            font-size: 12px;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
-        }
 
-        .info-value {
-            font-size: 16px;
-            color: var(--text-primary);
-            font-weight: 500;
-            min-height: 24px;
-            /* Prevent layout shift if empty */
-        }
-
-        .info-group {
-            margin-bottom: 20px;
-        }
-    </style>
 </head>
 
 <body>
@@ -213,32 +193,7 @@
         </div>
     </div>
 
-    <script>
-        function logout() {
-            showConfirmModal('Voulez-vous vraiment vous déconnecter ?', () => {
-                localStorage.removeItem('username');
-                localStorage.removeItem('role');
-                window.location.href = 'index.html';
-            });
-        }
 
-        function showConfirmModal(message, onConfirm) {
-            const modal = document.getElementById('confirmModal');
-            document.getElementById('confirmMessage').innerText = message;
-            const confirmBtn = document.getElementById('confirmActionBtn');
-
-            // Remove previous event listeners to avoid stacking
-            const newBtn = confirmBtn.cloneNode(true);
-            confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
-
-            newBtn.onclick = onConfirm;
-            modal.classList.add('active');
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
-        }
-    </script>
 
     <!-- Edit Profile Modal -->
     <div id="editProfileModal" class="modal">

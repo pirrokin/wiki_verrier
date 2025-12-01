@@ -297,3 +297,28 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial Load
     loadProfile();
 });
+
+function logout() {
+    showConfirmModal('Voulez-vous vraiment vous déconnecter ?', () => {
+        localStorage.removeItem('username');
+        localStorage.removeItem('role');
+        window.location.href = 'index.html';
+    });
+}
+
+function showConfirmModal(message, onConfirm) {
+    const modal = document.getElementById('confirmModal');
+    document.getElementById('confirmMessage').innerText = message;
+    const confirmBtn = document.getElementById('confirmActionBtn');
+
+    // Remove previous event listeners to avoid stacking
+    const newBtn = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+
+    newBtn.onclick = onConfirm;
+    modal.classList.add('active');
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.remove('active');
+}

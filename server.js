@@ -34,7 +34,8 @@ const upload = multer({
 
 // Middleware
 app.use(cors());
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.static('.')); // Serve static files from current directory
 app.use('/uploads', express.static('uploads')); // Serve uploaded files explicitly
 
@@ -388,11 +389,50 @@ app.put('/api/processes/:id/file', upload.single('document'), (req, res) => {
     });
 });
 
+// Update Process Details (Title, Content)
+app.put('/api/processes/:id', (req, res) => {
+    const { title, content } = req.body;
+
+    // Build query dynamically based on what's provided
+    let fields = [];
+    let values = [];
+
+    if (title) {
+        fields.push('title = ?');
+        values.push(title);
+    }
+    if (content !== undefined) { // Allow empty string content
+        fields.push('content = ?');
+        values.push(content);
+    }
+
+    if (fields.length === 0) return res.json({ success: true }); // Nothing to update
+
+    values.push(req.params.id);
+
+    const query = `UPDATE processes SET ${fields.join(', ')} WHERE id = ?`;
+
+    db.query(query, values, (err, result) => {
+        if (err) return res.status(500).json({ success: false, message: 'DB Error' });
+        res.json({ success: true });
+    });
+});
+
 // Delete Category
 app.delete('/api/categories/:id', (req, res) => {
     db.query('DELETE FROM categories WHERE id = ?', [req.params.id], (err, result) => {
         if (err) return res.status(500).json({ success: false, message: 'DB Error' });
         res.json({ success: true });
+    });
+});
+
+// Get Single Process
+app.get('/api/processes/:id', (req, res) => {
+    const query = 'SELECT * FROM processes WHERE id = ?';
+    db.query(query, [req.params.id], (err, results) => {
+        if (err) return res.status(500).json({ success: false, message: 'DB Error' });
+        if (results.length === 0) return res.status(404).json({ success: false, message: 'Process not found' });
+        res.json({ success: true, process: results[0] });
     });
 });
 
@@ -420,15 +460,38 @@ app.get('/api/search', (req, res) => {
     if (!q) return res.json({ success: true, results: [] });
 
     const query = `
-        SELECT p.id, p.title, p.file_path, c.name as category_name 
+        SELECT p.id, p.title, p.content, p.file_path, c.name as category_name 
         FROM processes p
         JOIN categories c ON p.category_id = c.id
-        WHERE p.title LIKE ?
+        WHERE p.title LIKE ? OR p.content LIKE ?
         LIMIT 10
     `;
-    db.query(query, [`%${q}%`], (err, results) => {
+    db.query(query, [`%${q}%`, `%${q}%`], (err, results) => {
         if (err) return res.status(500).json({ success: false, message: 'DB Error' });
-        res.json({ success: true, results: results });
+
+        // Process results to add snippets
+        const processedResults = results.map(item => {
+            let snippet = '';
+            if (item.content) {
+                // Strip HTML tags
+                const plainText = item.content.replace(/<[^>]+>/g, ' ');
+                const lowerText = plainText.toLowerCase();
+                const lowerQ = q.toLowerCase();
+                const index = lowerText.indexOf(lowerQ);
+
+                if (index !== -1) {
+                    // Extract context
+                    const start = Math.max(0, index - 40);
+                    const end = Math.min(plainText.length, index + q.length + 40);
+                    snippet = '...' + plainText.substring(start, end) + '...';
+                }
+            }
+            // Don't send full content to save bandwidth
+            const { content, ...rest } = item;
+            return { ...rest, snippet };
+        });
+
+        res.json({ success: true, results: processedResults });
     });
 });
 

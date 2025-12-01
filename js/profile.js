@@ -249,7 +249,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
-                        alert('Modifications enregistrées avec succès !');
+                        // Show Custom Popup
+                        showSuccessPopup();
 
                         // Update UI without redirect
                         if (data.newUsername && data.newUsername !== currentUsername) {
@@ -280,6 +281,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     btn.disabled = false;
                 });
         });
+    }
+
+    // Helper: Show Success Popup
+    function showSuccessPopup() {
+        const popup = document.getElementById('successPopup');
+        if (popup) {
+            popup.classList.add('active');
+            setTimeout(() => {
+                popup.classList.remove('active');
+            }, 3000);
+        }
     }
 
     // Initial Load

@@ -123,7 +123,9 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            overflow-y: auto;
+            /* Allow scrolling for PDF content */
+            overflow-x: hidden;
         }
 
         .empty-state {
@@ -257,12 +259,16 @@
         </div>
     </div>
 
+    <!-- PDF.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>
+        // Set worker source
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
         // Retrieve username from localStorage
         const username = localStorage.getItem('username');
         if (!username) window.location.href = 'index.html';
 
-        // Check Admin Role
         // Check Admin Role
         fetch('/api/profile?username=' + username)
             .then(res => res.json())
@@ -455,8 +461,13 @@
                         <span class="material-icons">download</span>
                     </a>
                 </div>
-                <embed src="/uploads/${process.file_path}" type="application/pdf" width="100%" height="100%" />
+                <div id="pdf-render-container" style="display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%;">
+                    <div id="pdf-loading" style="color: var(--text-secondary); margin-top: 20px;">Chargement du document...</div>
+                </div>
                 `;
+
+                // Render PDF after content is set
+                setTimeout(() => renderPDF(`/uploads/${process.file_path}`), 0);
             } else {
                 content += `</div>
                 <div class="empty-state">
@@ -468,6 +479,52 @@
             }
 
             container.innerHTML = content;
+        }
+
+        // --- PDF Rendering Logic ---
+        async function renderPDF(url) {
+            const container = document.getElementById('pdf-render-container');
+            const loading = document.getElementById('pdf-loading');
+
+            try {
+                const loadingTask = pdfjsLib.getDocument(url);
+                const pdf = await loadingTask.promise;
+
+                loading.style.display = 'none';
+
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    const page = await pdf.getPage(pageNum);
+
+                    // Calculate scale to fit container width (minus padding)
+                    // We'll use a base scale of 1.5 for quality, but CSS will handle responsiveness
+                    const scale = 1.5;
+                    const viewport = page.getViewport({ scale: scale });
+
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+
+                    // Style canvas to be responsive
+                    canvas.style.width = '100%';
+                    canvas.style.maxWidth = '1000px'; // Limit max width for readability
+                    canvas.style.height = 'auto';
+                    canvas.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)';
+                    canvas.style.borderRadius = '4px';
+
+                    const renderContext = {
+                        canvasContext: context,
+                        viewport: viewport
+                    };
+
+                    container.appendChild(canvas);
+                    await page.render(renderContext).promise;
+                }
+            } catch (error) {
+                console.error('Error rendering PDF:', error);
+                loading.textContent = 'Erreur lors du chargement du document.';
+                loading.style.color = 'var(--error-color)';
+            }
         }
 
         // --- Search ---

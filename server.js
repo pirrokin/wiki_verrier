@@ -229,8 +229,6 @@ app.put('/api/profile', (req, res) => {
 // API Endpoint to update account credentials (username/password)
 app.put('/api/account', (req, res) => {
     const { currentUsername, currentPassword, newUsername, newPassword } = req.body;
-    console.log('--- API ACCOUNT UPDATE REQUEST RECEIVED ---');
-    console.log('Body:', req.body);
 
     if (!currentUsername || !currentPassword) {
         return res.status(400).json({ success: false, message: 'Identifiants actuels requis' });

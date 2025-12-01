@@ -133,7 +133,7 @@
                         <input type="password" id="currentPassword" class="form-input" required
                             placeholder="Obligatoire pour valider"
                             style="width: 100%; padding: 10px; border: 1px solid #444; border-radius: 6px; background: #222; color: white;"
-                            autocomplete="new-password">
+                            autocomplete="current-password">
                         <div id="currentPasswordError" class="error-message"
                             style="display:none; color: var(--error-color); font-size: 12px; margin-top: 5px;"></div>
                     </div>
@@ -142,7 +142,7 @@
                         <input type="password" id="newPassword" class="form-input"
                             placeholder="Laisser vide pour ne pas changer"
                             style="width: 100%; padding: 10px; border: 1px solid #444; border-radius: 6px; background: #222; color: white;"
-                            autocomplete="new-password">
+                            autocomplete="off">
 
                         <div id="passwordRequirements"
                             style="margin-top: 10px; font-size: 12px; color: var(--text-secondary);">
@@ -156,7 +156,7 @@
                         <label>Confirmer nouveau mot de passe</label>
                         <input type="password" id="confirmNewPassword" class="form-input"
                             style="width: 100%; padding: 10px; border: 1px solid #444; border-radius: 6px; background: #222; color: white;"
-                            autocomplete="new-password">
+                            autocomplete="off">
                     </div>
                     <div class="form-actions"
                         style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
@@ -233,6 +233,14 @@
                 <button type="submit" class="btn-login">Enregistrer les modifications</button>
             </form>
         </div>
+    </div>
+
+    <!-- Success Popup -->
+    <div id="successPopup" class="success-popup">
+        <div class="success-icon">
+            <!-- Icon removed as requested -->
+        </div>
+        <div class="success-message">Succès !</div>
     </div>
 
     <script src="js/profile.js"></script>

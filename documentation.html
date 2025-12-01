@@ -847,24 +847,45 @@
         }
 
         // --- Deletion ---
+        // --- Deletion ---
         function deleteCategory(id) {
-            if (confirm('Supprimer cette catégorie ?')) {
+            showConfirmModal('Supprimer cette catégorie ?', () => {
                 fetch(`/api/categories/${id}`, { method: 'DELETE' })
                     .then(res => res.json())
-                    .then(data => { if (data.success) loadCategories(); });
-            }
+                    .then(data => {
+                        if (data.success) {
+                            loadCategories();
+                            closeModal('confirmModal');
+                        }
+                    });
+            });
         }
+
         function deleteProcess(id) {
-            if (confirm('Supprimer ce processus ?')) {
+            showConfirmModal('Supprimer ce processus ?', () => {
                 fetch(`/api/processes/${id}`, { method: 'DELETE' })
                     .then(res => res.json())
                     .then(data => {
                         if (data.success) {
                             loadCategories();
                             document.getElementById('processViewer').innerHTML = '';
+                            closeModal('confirmModal');
                         }
                     });
-            }
+            });
+        }
+
+        function showConfirmModal(message, onConfirm) {
+            const modal = document.getElementById('confirmModal');
+            document.getElementById('confirmMessage').innerText = message;
+            const confirmBtn = document.getElementById('confirmActionBtn');
+
+            // Remove previous event listeners to avoid stacking
+            const newBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+
+            newBtn.onclick = onConfirm;
+            modal.classList.add('active');
         }
 
         // --- Search Functionality ---

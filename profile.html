@@ -177,8 +177,68 @@
                     <p style="color: #555;">Graphique: Mises à jour PDMS</p>
                 </div>
             </div>
+
+            <!-- Logout Button -->
+            <div style="margin-top: 40px; text-align: center; padding-bottom: 20px;">
+                <button onclick="logout()" style="
+                    background: transparent;
+                    border: 1px solid #ff5252;
+                    color: #ff5252;
+                    padding: 10px 30px;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                " onmouseover="this.style.background='rgba(255, 82, 82, 0.1)'"
+                    onmouseout="this.style.background='transparent'">
+                    Déconnexion
+                </button>
+            </div>
         </div>
     </div>
+
+    <!-- Confirm Modal -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <h2 style="margin-bottom: 10px;">Confirmation</h2>
+            <p id="confirmMessage" style="margin-bottom: 25px; color: var(--text-secondary);">Êtes-vous sûr ?</p>
+            <div style="display: flex; justify-content: center; gap: 15px;">
+                <button type="button" class="btn-secondary" onclick="closeModal('confirmModal')">Annuler</button>
+                <button type="button" class="btn-primary" id="confirmActionBtn"
+                    style="background-color: #ff5252;">Déconnexion</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function logout() {
+            showConfirmModal('Voulez-vous vraiment vous déconnecter ?', () => {
+                localStorage.removeItem('username');
+                localStorage.removeItem('role');
+                window.location.href = 'index.html';
+            });
+        }
+
+        function showConfirmModal(message, onConfirm) {
+            const modal = document.getElementById('confirmModal');
+            document.getElementById('confirmMessage').innerText = message;
+            const confirmBtn = document.getElementById('confirmActionBtn');
+
+            // Remove previous event listeners to avoid stacking
+            const newBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+
+            newBtn.onclick = onConfirm;
+            modal.classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+    </script>
 
     <!-- Edit Profile Modal -->
     <div id="editProfileModal" class="modal">

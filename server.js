@@ -412,7 +412,8 @@ app.put('/api/processes/:id/file', upload.single('document'), (req, res) => {
 
 // Update Process Details (Title, Content)
 app.put('/api/processes/:id', (req, res) => {
-    const { title, content } = req.body;
+    const { title, content, modifier_username } = req.body;
+    const processId = req.params.id;
 
     // Build query dynamically based on what's provided
     let fields = [];
@@ -429,13 +430,44 @@ app.put('/api/processes/:id', (req, res) => {
 
     if (fields.length === 0) return res.json({ success: true }); // Nothing to update
 
-    values.push(req.params.id);
+    values.push(processId);
 
     const query = `UPDATE processes SET ${fields.join(', ')} WHERE id = ?`;
 
     db.query(query, values, (err, result) => {
         if (err) return res.status(500).json({ success: false, message: 'DB Error' });
+
+        // Log history if username provided
+        if (modifier_username) {
+            const findUser = 'SELECT id FROM users WHERE username = ?';
+            db.query(findUser, [modifier_username], (err, users) => {
+                if (!err && users.length > 0) {
+                    const userId = users[0].id;
+                    const historyQuery = 'INSERT INTO process_history (process_id, user_id) VALUES (?, ?)';
+                    db.query(historyQuery, [processId, userId], (err) => {
+                        if (err) console.error('Error logging history:', err);
+                    });
+                }
+            });
+        }
+
         res.json({ success: true });
+    });
+});
+
+// Get Process History
+app.get('/api/processes/:id/history', (req, res) => {
+    const processId = req.params.id;
+    const query = `
+        SELECT h.modified_at, u.username, u.profile_picture
+        FROM process_history h
+        JOIN users u ON h.user_id = u.id
+        WHERE h.process_id = ?
+        ORDER BY h.modified_at DESC
+    `;
+    db.query(query, [processId], (err, results) => {
+        if (err) return res.status(500).json({ success: false, message: 'DB Error' });
+        res.json({ success: true, history: results });
     });
 });
 
@@ -530,6 +562,34 @@ db.query(migrationQuery, (err, results) => {
     if (!err && results[0].count == 0) {
         console.log('Migrating DB: Adding content column to processes table...');
         db.query('ALTER TABLE processes ADD COLUMN content LONGTEXT', (err) => {
+            if (err) console.error('Migration failed:', err);
+            else console.log('Migration successful.');
+        });
+    }
+});
+
+// Ensure 'process_history' table exists
+const migrationHistoryQuery = `
+    SELECT count(*) as count 
+    FROM information_schema.tables
+    WHERE table_schema = 'technician_wiki' 
+    AND table_name = 'process_history';
+`;
+
+db.query(migrationHistoryQuery, (err, results) => {
+    if (!err && results[0].count == 0) {
+        console.log('Migrating DB: Creating process_history table...');
+        const createHistoryTable = `
+            CREATE TABLE process_history (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                process_id INT NOT NULL,
+                user_id INT NOT NULL,
+                modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (process_id) REFERENCES processes(id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        `;
+        db.query(createHistoryTable, (err) => {
             if (err) console.error('Migration failed:', err);
             else console.log('Migration successful.');
         });

@@ -212,6 +212,9 @@ function loadProcess(process, searchQuery = null) {
 
     container.innerHTML = contentHTML;
 
+    // Load History
+    loadHistory(process.id);
+
     // Auto-scroll to first highlight
     if (searchQuery && process.content) {
         setTimeout(() => {
@@ -221,6 +224,50 @@ function loadProcess(process, searchQuery = null) {
             }
         }, 100);
     }
+}
+
+function loadHistory(processId) {
+    const container = document.getElementById('processViewer');
+
+    // Create history container if it doesn't exist
+    let historyContainer = document.getElementById('history-container');
+    if (!historyContainer) {
+        historyContainer = document.createElement('div');
+        historyContainer.id = 'history-container';
+        historyContainer.style.marginTop = '40px';
+        historyContainer.style.paddingTop = '20px';
+        historyContainer.style.borderTop = '1px solid #333';
+        container.appendChild(historyContainer);
+    }
+
+    fetch(`/api/processes/${processId}/history`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.history.length > 0) {
+                let historyHTML = '<h3 style="font-size: 16px; color: #888; margin-bottom: 15px;">Historique des modifications</h3>';
+                historyHTML += '<div style="display: flex; flex-direction: column; gap: 10px;">';
+
+                data.history.forEach(item => {
+                    const picUrl = item.profile_picture ? `/uploads/${item.profile_picture}` : 'images/default-avatar.svg';
+                    const date = new Date(item.modified_at).toLocaleString('fr-FR');
+
+                    historyHTML += `
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: #222; border-radius: 6px;">
+                            <img src="${picUrl}" alt="${item.username}" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover;">
+                            <div style="display: flex; flex-direction: column;">
+                                <span style="font-size: 13px; font-weight: 500;">${item.username}</span>
+                                <span style="font-size: 11px; color: #888;">Modifié le ${date}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                historyHTML += '</div>';
+                historyContainer.innerHTML = historyHTML;
+            } else {
+                historyContainer.innerHTML = '';
+            }
+        });
 }
 
 function enableEditMode(isNew = false) {
@@ -280,7 +327,10 @@ function saveContent() {
     fetch(`/api/processes/${currentProcessId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: content })
+        body: JSON.stringify({
+            content: content,
+            modifier_username: username
+        })
     })
         .then(res => res.json())
         .then(data => {

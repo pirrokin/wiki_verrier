@@ -64,34 +64,22 @@ function openDetailsModal(id) {
 
                 // Reset UI state
                 pwdInput.type = 'password';
-                pwdInput.value = '••••••';
+                pwdInput.value = '••••••••'; // Placeholder
                 pwdInput.disabled = true;
-                pwdInput.dataset.realPassword = user.password;
+                // No longer storing real password
 
                 // Clear existing buttons
-                const existingToggle = pwdContainer.querySelector('.password-toggle');
-                const existingEdit = pwdContainer.querySelector('.btn-edit-pwd');
-                const existingSave = pwdContainer.querySelector('.btn-save-pwd');
-                if (existingToggle) existingToggle.remove();
-                if (existingEdit) existingEdit.remove();
-                if (existingSave) existingSave.remove();
+                pwdContainer.querySelectorAll('button').forEach(btn => btn.remove());
 
-                // Add Toggle Button
-                const toggleBtn = document.createElement('button');
-                toggleBtn.className = 'password-toggle';
-                toggleBtn.innerHTML = '<span class="material-icons">visibility</span>';
-                toggleBtn.onclick = togglePasswordVisibility;
-                pwdContainer.appendChild(toggleBtn);
-
-                // Add Edit Button (if not viewing 'admin' account)
+                // Add Reset Button (if not viewing 'admin' account)
                 if (user.username !== 'admin') {
-                    const editBtn = document.createElement('button');
-                    editBtn.className = 'btn-view btn-edit-pwd'; // Reuse btn-view style
-                    editBtn.innerHTML = '<span class="material-icons">edit</span>';
-                    editBtn.title = "Modifier le mot de passe";
-                    editBtn.style.marginLeft = '10px';
-                    editBtn.onclick = () => enablePasswordEdit(editBtn, toggleBtn);
-                    pwdContainer.appendChild(editBtn);
+                    const resetBtn = document.createElement('button');
+                    resetBtn.className = 'btn-view btn-edit-pwd';
+                    resetBtn.innerHTML = '<span class="material-icons">lock_reset</span>';
+                    resetBtn.title = "Réinitialiser le mot de passe";
+                    resetBtn.style.marginLeft = '10px';
+                    resetBtn.onclick = () => enablePasswordReset(resetBtn);
+                    pwdContainer.appendChild(resetBtn);
                 }
 
                 document.getElementById('detailLastname').value = user.lastname || '-';
@@ -105,7 +93,7 @@ function openDetailsModal(id) {
         });
 }
 
-function enablePasswordEdit(editBtn, toggleBtn) {
+function enablePasswordReset(resetBtn) {
     const pwdInput = document.getElementById('detailPassword');
     const pwdContainer = document.querySelector('.password-container');
 
@@ -114,9 +102,8 @@ function enablePasswordEdit(editBtn, toggleBtn) {
     pwdInput.placeholder = "Nouveau mot de passe";
     pwdInput.focus();
 
-    // Hide toggle and edit buttons
-    toggleBtn.style.display = 'none';
-    editBtn.style.display = 'none';
+    // Hide reset button
+    resetBtn.style.display = 'none';
 
     // Add Save Button
     const saveBtn = document.createElement('button');
@@ -158,20 +145,7 @@ function closeDetailsModal() {
     currentDetailUserId = null;
 }
 
-function togglePasswordVisibility() {
-    const pwdInput = document.getElementById('detailPassword');
-    const toggleBtn = document.querySelector('.password-toggle');
-
-    if (pwdInput.type === 'password') {
-        pwdInput.type = 'text';
-        pwdInput.value = pwdInput.dataset.realPassword;
-        toggleBtn.innerHTML = '<span class="material-icons">visibility_off</span>';
-    } else {
-        pwdInput.type = 'password';
-        pwdInput.value = '••••••';
-        toggleBtn.innerHTML = '<span class="material-icons">visibility</span>';
-    }
-}
+// Toggle Password Visibility Function Removed
 
 // Close modal if clicking outside
 window.onclick = function (event) {

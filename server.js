@@ -177,7 +177,7 @@ app.delete('/api/users/:id', (req, res) => {
 // Get Single User Details Endpoint (Admin only - includes password)
 app.get('/api/users/:id', (req, res) => {
     const userId = req.params.id;
-    const query = 'SELECT * FROM users WHERE id = ?';
+    const query = 'SELECT id, username, role, firstname, lastname, email, phone, address, birthdate, gender, created_at, profile_picture FROM users WHERE id = ?';
     db.query(query, [userId], (err, results) => {
         if (err) return res.status(500).json({ success: false, message: 'DB Error' });
         if (results.length === 0) return res.status(404).json({ success: false, message: 'User not found' });

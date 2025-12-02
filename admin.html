@@ -14,37 +14,40 @@
 <body>
     <nav class="navbar">
         <div class="nav-left">
+            <button class="menu-toggle-btn" onclick="toggleMainMenu()">
+                <span class="material-icons">apps</span>
+            </button>
+
+            <!-- Main Navigation Menu (Hidden by default) -->
+            <div class="nav-main-menu" id="mainNavMenu">
+                <a href="admin.html" class="nav-menu-item">
+                    <span class="material-icons">home</span> Accueil
+                </a>
+
+                <div class="nav-menu-header">Technicien</div>
+                <a href="pdms.html" class="nav-menu-item">
+                    <span class="material-icons">storage</span> PDMS
+                </a>
+
+                <div class="nav-menu-header">Ressources</div>
+                <a href="documentation.html" class="nav-menu-item">
+                    <span class="material-icons">menu_book</span> Wiki
+                </a>
+            </div>
+        </div>
+
+        <div class="nav-center">
             <a href="admin.html" class="nav-brand">
                 <img src="images/logo.png" alt="Logo" class="nav-logo">
                 <span>Technician Wiki</span>
             </a>
-            <div class="nav-links">
-                <button class="nav-btn active" onclick="window.location.href='admin.html'">Accueil</button>
-
-                <div class="nav-item-dropdown">
-                    <button class="nav-btn" id="technicienBtn">Technicien</button>
-                    <div class="nav-card-menu">
-                        <div class="nav-card-item" onclick="window.location.href='pdms.html'">
-                            <div class="nav-card-icon">
-                                <span class="material-icons">storage</span>
-                            </div>
-                            <div class="nav-card-content">
-                                <span class="nav-card-title">PDMS</span>
-                                <span class="nav-card-desc">Gestion des identifiants</span>
-                            </div>
-                        </div>
-                        <!-- Future items can be added here -->
-                    </div>
-                </div>
-
-                <button class="nav-btn" onclick="window.location.href='documentation.html'">Wiki</button>
-            </div>
         </div>
+
         <div class="nav-right">
             <div class="user-menu-container">
                 <button class="user-menu-btn" onclick="toggleUserMenu()">
                     <img src="images/default-avatar.svg" id="navUserAvatar" alt="Avatar">
-                    <span id="navUserName">Chargement...</span>
+                    <span id="navUserName">...</span>
                     <span class="material-icons">arrow_drop_down</span>
                 </button>
                 <div class="user-dropdown" id="userDropdown">

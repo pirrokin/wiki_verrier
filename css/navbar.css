@@ -18,11 +18,12 @@
     transform: translateX(-50%);
     width: 90%;
     max-width: 1000px;
-    height: 70px;
+    height: 55px;
+    /* Reduced height */
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 30px;
+    padding: 0 20px;
     border-radius: var(--nav-pill-radius);
     background: var(--nav-glass-bg);
     backdrop-filter: blur(var(--nav-glass-blur));
@@ -35,152 +36,76 @@
 
 /* Adjust main content to not be hidden behind fixed navbar */
 body {
-    padding-top: 110px;
-    /* 20px top + 70px height + 20px gap */
+    padding-top: 95px;
+    /* Adjusted for smaller navbar */
 }
 
-/* Left Section (Logo + Links) */
+/* Left Section (Menu Button) */
 .nav-left {
     display: flex;
     align-items: center;
-    gap: 40px;
     height: 100%;
+    flex: 1;
+    /* Takes up available space to help centering */
+}
+
+.menu-toggle-btn {
+    background: transparent;
+    border: none;
+    color: var(--nav-text-color);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.menu-toggle-btn:hover {
+    background-color: var(--nav-item-hover);
+}
+
+.menu-toggle-btn .material-icons {
+    font-size: 24px;
+}
+
+/* Center Section (Logo) */
+.nav-center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .nav-brand {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     font-weight: 600;
-    font-size: 1.1rem;
+    font-size: 1rem;
+    /* Smaller font */
     color: var(--nav-text-color);
     text-decoration: none;
     letter-spacing: 0.5px;
 }
 
 .nav-logo {
-    height: 32px;
+    height: 24px;
+    /* Smaller logo */
     width: auto;
     filter: drop-shadow(0 0 8px rgba(98, 0, 234, 0.3));
 }
 
-.nav-links {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    height: 100%;
-}
-
-/* Navigation Items */
-.nav-btn {
-    background: transparent;
-    border: none;
-    color: var(--nav-text-muted);
-    font-size: 14px;
-    font-weight: 500;
-    padding: 8px 16px;
-    border-radius: 20px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    position: relative;
-}
-
-.nav-btn:hover {
-    color: var(--nav-text-color);
-    background-color: var(--nav-item-hover);
-}
-
-.nav-btn.active {
-    color: var(--nav-text-color);
-    background-color: rgba(255, 255, 255, 0.15);
-    font-weight: 600;
-}
-
-/* Technicien Dropdown Trigger */
-.nav-item-dropdown {
-    position: relative;
-    height: 100%;
-    display: flex;
-    align-items: center;
-}
-
-/* The Card Menu (Technicien) */
-.nav-card-menu {
-    position: absolute;
-    top: calc(100% + 15px);
-    left: 50%;
-    transform: translateX(-50%) translateY(-10px);
-    width: 300px;
-    background: var(--nav-glass-bg);
-    backdrop-filter: blur(var(--nav-glass-blur));
-    -webkit-backdrop-filter: blur(var(--nav-glass-blur));
-    border: 1px solid var(--nav-glass-border);
-    border-radius: 24px;
-    padding: 20px;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 10px;
-}
-
-.nav-item-dropdown:hover .nav-card-menu,
-.nav-card-menu:hover {
-    opacity: 1;
-    visibility: visible;
-    transform: translateX(-50%) translateY(0);
-}
-
-/* Card Items */
-.nav-card-item {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 12px;
-    border-radius: 16px;
-    text-decoration: none;
-    color: var(--nav-text-color);
-    transition: background 0.2s;
-    cursor: pointer;
-}
-
-.nav-card-item:hover {
-    background-color: var(--nav-item-hover);
-}
-
-.nav-card-icon {
-    width: 40px;
-    height: 40px;
-    background: rgba(98, 0, 234, 0.1);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--accent-color);
-}
-
-.nav-card-content {
-    display: flex;
-    flex-direction: column;
-}
-
-.nav-card-title {
-    font-weight: 600;
-    font-size: 14px;
-    margin-bottom: 2px;
-}
-
-.nav-card-desc {
-    font-size: 12px;
-    color: var(--nav-text-muted);
-}
-
-/* User Menu (Right Side) */
+/* Right Section (User) */
 .nav-right {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
+    flex: 1;
+    /* Takes up available space to help centering */
 }
 
 .user-menu-btn {
@@ -189,8 +114,9 @@ body {
     color: var(--nav-text-color);
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 6px 12px 6px 6px;
+    gap: 10px;
+    padding: 4px 10px 4px 4px;
+    /* Smaller padding */
     border-radius: 30px;
     cursor: pointer;
     transition: all 0.2s;
@@ -203,8 +129,9 @@ body {
 }
 
 .user-menu-btn img {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    /* Smaller avatar */
+    height: 32px;
     border-radius: 50%;
     object-fit: cover;
     border: 2px solid var(--accent-color);
@@ -212,10 +139,76 @@ body {
 
 .user-menu-btn span {
     font-weight: 500;
-    font-size: 14px;
+    font-size: 13px;
+    /* Smaller text */
 }
 
-/* User Dropdown */
+/* Main Navigation Card (Hidden by default) */
+.nav-main-menu {
+    position: absolute;
+    top: calc(100% + 15px);
+    left: 20px;
+    /* Aligned with left button */
+    width: 280px;
+    background: var(--nav-glass-bg);
+    backdrop-filter: blur(var(--nav-glass-blur));
+    -webkit-backdrop-filter: blur(var(--nav-glass-blur));
+    border: 1px solid var(--nav-glass-border);
+    border-radius: 24px;
+    padding: 20px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 999;
+}
+
+.nav-main-menu.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.nav-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 16px;
+    text-decoration: none;
+    color: var(--nav-text-color);
+    transition: background 0.2s;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.nav-menu-item:hover {
+    background-color: var(--nav-item-hover);
+}
+
+.nav-menu-item .material-icons {
+    font-size: 20px;
+    color: var(--nav-text-muted);
+}
+
+.nav-menu-item:hover .material-icons {
+    color: var(--accent-color);
+}
+
+.nav-menu-header {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--nav-text-muted);
+    margin: 10px 0 5px 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* User Dropdown (Right Side) */
 .user-dropdown {
     position: absolute;
     top: calc(100% + 15px);
@@ -293,15 +286,7 @@ body {
 
     .nav-brand span {
         display: none;
-    }
-
-    .nav-links {
-        gap: 4px;
-    }
-
-    .nav-btn {
-        padding: 8px 10px;
-        font-size: 13px;
+        /* Hide text on mobile if needed, or keep small */
     }
 
     .user-menu-btn span {

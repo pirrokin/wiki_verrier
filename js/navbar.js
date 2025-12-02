@@ -53,15 +53,25 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .catch(err => console.error('Navbar profile fetch error:', err));
 
-    // Close dropdown when clicking outside
+    // Close dropdowns when clicking outside
     document.addEventListener('click', (event) => {
-        const dropdown = document.getElementById('userDropdown');
-        const btn = document.querySelector('.user-menu-btn');
+        const userDropdown = document.getElementById('userDropdown');
+        const userBtn = document.querySelector('.user-menu-btn');
+        const mainMenu = document.getElementById('mainNavMenu');
+        const menuBtn = document.querySelector('.menu-toggle-btn');
 
-        if (dropdown && dropdown.classList.contains('active')) {
-            if (!dropdown.contains(event.target) && !btn.contains(event.target)) {
-                dropdown.classList.remove('active');
-                btn.classList.remove('active');
+        // Close User Dropdown
+        if (userDropdown && userDropdown.classList.contains('active')) {
+            if (!userDropdown.contains(event.target) && !userBtn.contains(event.target)) {
+                userDropdown.classList.remove('active');
+                userBtn.classList.remove('active');
+            }
+        }
+
+        // Close Main Menu
+        if (mainMenu && mainMenu.classList.contains('active')) {
+            if (!mainMenu.contains(event.target) && !menuBtn.contains(event.target)) {
+                mainMenu.classList.remove('active');
             }
         }
     });
@@ -74,6 +84,13 @@ function toggleUserMenu() {
     if (dropdown) {
         dropdown.classList.toggle('active');
         btn.classList.toggle('active');
+    }
+}
+
+function toggleMainMenu() {
+    const menu = document.getElementById('mainNavMenu');
+    if (menu) {
+        menu.classList.toggle('active');
     }
 }
 

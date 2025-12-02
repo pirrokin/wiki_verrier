@@ -14,13 +14,29 @@
 <body>
     <nav class="navbar">
         <div class="nav-left">
-            <div class="nav-brand">
+            <a href="admin.html" class="nav-brand">
                 <img src="images/logo.png" alt="Logo" class="nav-logo">
-                Technician Wiki
-            </div>
+                <span>Technician Wiki</span>
+            </a>
             <div class="nav-links">
                 <button class="nav-btn active" onclick="window.location.href='admin.html'">Accueil</button>
-                <button class="nav-btn" onclick="window.location.href='pdms.html'">PDMS</button>
+
+                <div class="nav-item-dropdown">
+                    <button class="nav-btn" id="technicienBtn">Technicien</button>
+                    <div class="nav-card-menu">
+                        <div class="nav-card-item" onclick="window.location.href='pdms.html'">
+                            <div class="nav-card-icon">
+                                <span class="material-icons">storage</span>
+                            </div>
+                            <div class="nav-card-content">
+                                <span class="nav-card-title">PDMS</span>
+                                <span class="nav-card-desc">Gestion des identifiants</span>
+                            </div>
+                        </div>
+                        <!-- Future items can be added here -->
+                    </div>
+                </div>
+
                 <button class="nav-btn" onclick="window.location.href='documentation.html'">Wiki</button>
             </div>
         </div>

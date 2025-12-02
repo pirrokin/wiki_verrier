@@ -1,11 +1,17 @@
 document.addEventListener('DOMContentLoaded', () => {
     const username = localStorage.getItem('username');
     if (!username) {
-        // Redirect if not logged in (and not on login page, though this script shouldn't be loaded there)
+        // Redirect if not logged in (and not on login page)
         if (!window.location.pathname.endsWith('index.html') && !window.location.pathname.endsWith('/')) {
             window.location.href = 'index.html';
         }
         return;
+    }
+
+    // Highlight "Technicien" if on PDMS pages
+    if (window.location.pathname.includes('pdms')) {
+        const techBtn = document.getElementById('technicienBtn');
+        if (techBtn) techBtn.classList.add('active');
     }
 
     // Fetch User Info for Navbar

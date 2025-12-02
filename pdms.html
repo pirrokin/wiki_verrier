@@ -10,9 +10,11 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/pdms.css">
     <link rel="stylesheet" href="css/navbar.css">
+    <link rel="stylesheet" href="css/dark-veil.css">
 </head>
 
 <body>
+    <div id="dark-veil-container"></div>
     <nav class="navbar">
         <div class="nav-top-bar">
             <div class="nav-left">
@@ -119,6 +121,17 @@
 
     <script src="js/navbar.js"></script>
     <script src="js/pdms.js"></script>
+    <script type="module">
+        import { initDarkVeil } from './js/dark-veil.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initDarkVeil('dark-veil-container', {
+                speed: 0.5,
+                noiseIntensity: 0.2, // Slight noise for texture
+                scanlineIntensity: 0.1 // Subtle scanlines
+            });
+        });
+    </script>
 </body>
 
 </html>

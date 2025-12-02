@@ -676,6 +676,36 @@ function renderSearchResults(results) {
 
 // Initial Load
 loadCategories();
+// Initial Load
+loadCategories();
 window.onclick = function (event) {
     if (event.target.classList.contains('modal')) event.target.classList.remove('active');
+    if (event.target.classList.contains('lightbox')) document.getElementById('lightbox').classList.remove('active');
 }
+
+// Lightbox Logic
+const lightbox = document.getElementById('lightbox');
+const lightboxImg = document.getElementById('lightbox-img');
+const lightboxClose = document.querySelector('.lightbox-close');
+
+if (lightbox && lightboxImg && lightboxClose) {
+    // Close on button click
+    lightboxClose.onclick = () => {
+        lightbox.classList.remove('active');
+    };
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && lightbox.classList.contains('active')) {
+            lightbox.classList.remove('active');
+        }
+    });
+}
+
+// Delegate click event for dynamic images in content
+document.getElementById('processViewer').addEventListener('click', (e) => {
+    if (e.target.tagName === 'IMG' && e.target.closest('.ql-editor')) {
+        lightbox.classList.add('active');
+        lightboxImg.src = e.target.src;
+    }
+});

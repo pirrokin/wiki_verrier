@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/pdms.css">
 </head>
 
 <body>
@@ -27,11 +28,39 @@
     </nav>
 
     <div class="dashboard-container">
-        <div class="welcome-section" style="justify-content: center; text-align: center; margin-top: 100px;">
+        <div class="welcome-section" style="text-align: center; margin-bottom: 60px;">
             <div>
-                <h1 class="welcome-title" style="font-size: 48px; margin-bottom: 20px;">🔨</h1>
-                <h2 style="margin-bottom: 10px;">Désolé, cette page est en cours de construction</h2>
-                <p class="welcome-subtitle">Revenez plus tard !</p>
+                <h1 class="welcome-title">PDMS</h1>
+                <p class="welcome-subtitle">Gestion des identifiants clients et fournisseurs</p>
+            </div>
+        </div>
+
+        <div class="pdms-grid">
+            <!-- Suppliers Card -->
+            <div class="pdms-card" onclick="window.location.href='pdms_suppliers.html'">
+                <div class="pdms-icon">
+                    <span class="material-icons">local_shipping</span>
+                </div>
+                <h2>Fournisseurs</h2>
+                <p>Accéder aux identifiants des fournisseurs</p>
+            </div>
+
+            <!-- Individuals Card -->
+            <div class="pdms-card" onclick="window.location.href='pdms_individuals.html'">
+                <div class="pdms-icon">
+                    <span class="material-icons">person</span>
+                </div>
+                <h2>Particuliers</h2>
+                <p>Gérer les accès des clients particuliers</p>
+            </div>
+
+            <!-- Professionals Card -->
+            <div class="pdms-card" onclick="window.location.href='pdms_professionals.html'">
+                <div class="pdms-icon">
+                    <span class="material-icons">business</span>
+                </div>
+                <h2>Professionnels</h2>
+                <p>Consulter les comptes des entreprises</p>
             </div>
         </div>
     </div>

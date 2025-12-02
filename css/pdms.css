@@ -1,4 +1,4 @@
-/* PDMS Specific Styles */
+/* PDMS Specific Styles - Spotlight Effect */
 .pdms-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -7,61 +7,90 @@
 }
 
 .pdms-card {
-    background-color: var(--card-bg);
-    border: 1px solid #333;
+    background-color: rgba(30, 30, 30, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 16px;
     padding: 40px;
     text-align: center;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
+    transition: transform 0.2s ease;
+    /* Initialize variables to keep valid CSS */
+    --mouse-x: 50%;
+    --mouse-y: 50%;
 }
 
-.pdms-card:hover {
-    transform: translateY(-10px);
-    border-color: var(--accent-color);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-    background-color: #252525;
-}
-
+/* The Spotlight Glow */
 .pdms-card::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(45deg, transparent, rgba(98, 0, 234, 0.1), transparent);
-    transform: translateX(-100%);
-    transition: 0.5s;
+    background: radial-gradient(800px circle at var(--mouse-x) var(--mouse-y),
+            rgba(255, 255, 255, 0.06),
+            transparent 40%);
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
 }
 
-.pdms-card:hover::before {
-    transform: translateX(100%);
+/* The Border Spotlight (Optional, but adds depth) */
+.pdms-card::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(600px circle at var(--mouse-x) var(--mouse-y),
+            rgba(98, 0, 234, 0.4),
+            transparent 40%);
+    z-index: 0;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
 }
 
+/* Reveal on Hover */
+.pdms-card:hover::before,
+.pdms-card:hover::after {
+    opacity: 1;
+}
+
+/* Content needs to be above the spotlight */
+.pdms-card>* {
+    position: relative;
+    z-index: 2;
+}
+
+/* Icon Styling */
 .pdms-icon {
     width: 80px;
     height: 80px;
-    background-color: rgba(98, 0, 234, 0.1);
+    background-color: rgba(255, 255, 255, 0.05);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto 25px auto;
     transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .pdms-card:hover .pdms-icon {
     background-color: var(--accent-color);
-    transform: scale(1.1) rotate(5deg);
-    box-shadow: 0 0 20px rgba(98, 0, 234, 0.4);
+    transform: scale(1.1);
+    box-shadow: 0 0 30px rgba(98, 0, 234, 0.5);
+    border-color: var(--accent-color);
 }
 
 .pdms-icon .material-icons {
     font-size: 40px;
-    color: var(--accent-color);
+    color: var(--text-secondary);
     transition: color 0.3s ease;
 }
 
@@ -69,6 +98,7 @@
     color: white;
 }
 
+/* Text Styling */
 .pdms-card h2 {
     font-size: 24px;
     margin-bottom: 10px;

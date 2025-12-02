@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('click', (event) => {
         const userDropdown = document.getElementById('userDropdown');
         const userBtn = document.querySelector('.user-menu-btn');
-        const mainMenu = document.getElementById('mainNavMenu');
+        const navbar = document.querySelector('.navbar');
         const menuBtn = document.querySelector('.menu-toggle-btn');
 
         // Close User Dropdown
@@ -68,10 +68,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Close Main Menu
-        if (mainMenu && mainMenu.classList.contains('active')) {
-            if (!mainMenu.contains(event.target) && !menuBtn.contains(event.target)) {
-                mainMenu.classList.remove('active');
+        // Close Main Menu (Collapse Navbar)
+        if (navbar && navbar.classList.contains('expanded')) {
+            // If click is NOT inside navbar AND NOT on the toggle button
+            if (!navbar.contains(event.target) && !menuBtn.contains(event.target)) {
+                navbar.classList.remove('expanded');
+                // Change icon back to apps
+                const icon = menuBtn.querySelector('.material-icons');
+                if (icon) icon.textContent = 'apps';
             }
         }
     });
@@ -82,15 +86,31 @@ function toggleUserMenu() {
     const btn = document.querySelector('.user-menu-btn');
 
     if (dropdown) {
+        // Calculate position dynamically if needed, but fixed CSS handles it mostly.
+        // We might need to adjust right position based on window width to align with button.
+        const rect = btn.getBoundingClientRect();
+        dropdown.style.top = (rect.bottom + 10) + 'px';
+        // dropdown.style.right = (window.innerWidth - rect.right) + 'px'; // Optional precision
+
         dropdown.classList.toggle('active');
         btn.classList.toggle('active');
     }
 }
 
 function toggleMainMenu() {
-    const menu = document.getElementById('mainNavMenu');
-    if (menu) {
-        menu.classList.toggle('active');
+    const navbar = document.querySelector('.navbar');
+    const btn = document.querySelector('.menu-toggle-btn');
+    const icon = btn.querySelector('.material-icons');
+
+    if (navbar) {
+        navbar.classList.toggle('expanded');
+
+        // Toggle Icon
+        if (navbar.classList.contains('expanded')) {
+            if (icon) icon.textContent = 'close';
+        } else {
+            if (icon) icon.textContent = 'apps';
+        }
     }
 }
 

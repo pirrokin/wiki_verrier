@@ -5,12 +5,18 @@
     --nav-glass-blur: 12px;
     --nav-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
     --nav-pill-radius: 50px;
+    /* Collapsed radius */
+    --nav-expanded-radius: 30px;
+    /* Expanded radius */
     --nav-item-hover: rgba(255, 255, 255, 0.1);
     --nav-text-color: #ffffff;
     --nav-text-muted: #a0a0a0;
+    --nav-height-collapsed: 55px;
+    --nav-height-expanded: 280px;
+    /* Adjust based on content */
 }
 
-/* Floating Navbar Container */
+/* Floating Navbar Container - The "Card" */
 .navbar {
     position: fixed;
     top: 20px;
@@ -18,11 +24,10 @@
     transform: translateX(-50%);
     width: 90%;
     max-width: 1000px;
-    height: 55px;
-    /* Reduced height */
+    height: var(--nav-height-collapsed);
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    /* Stack top bar and content */
     padding: 0 20px;
     border-radius: var(--nav-pill-radius);
     background: var(--nav-glass-bg);
@@ -31,22 +36,37 @@
     border: 1px solid var(--nav-glass-border);
     box-shadow: var(--nav-shadow);
     z-index: 1000;
-    transition: all 0.3s ease;
+    overflow: hidden;
+    /* Hide content when collapsed */
+    transition: height 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.4s ease;
 }
 
-/* Adjust main content to not be hidden behind fixed navbar */
+.navbar.expanded {
+    height: var(--nav-height-expanded);
+    border-radius: var(--nav-expanded-radius);
+}
+
+/* Adjust main content */
 body {
     padding-top: 95px;
-    /* Adjusted for smaller navbar */
+}
+
+/* Top Bar (Always Visible) */
+.nav-top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    height: var(--nav-height-collapsed);
+    flex-shrink: 0;
+    /* Prevent shrinking */
 }
 
 /* Left Section (Menu Button) */
 .nav-left {
     display: flex;
     align-items: center;
-    height: 100%;
     flex: 1;
-    /* Takes up available space to help centering */
 }
 
 .menu-toggle-btn {
@@ -66,18 +86,16 @@ body {
     background-color: var(--nav-item-hover);
 }
 
-.menu-toggle-btn .material-icons {
-    font-size: 24px;
-}
-
 /* Center Section (Logo) */
 .nav-center {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
     display: flex;
     align-items: center;
     justify-content: center;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 0;
+    height: var(--nav-height-collapsed);
 }
 
 .nav-brand {
@@ -86,7 +104,6 @@ body {
     gap: 10px;
     font-weight: 600;
     font-size: 1rem;
-    /* Smaller font */
     color: var(--nav-text-color);
     text-decoration: none;
     letter-spacing: 0.5px;
@@ -94,7 +111,6 @@ body {
 
 .nav-logo {
     height: 24px;
-    /* Smaller logo */
     width: auto;
     filter: drop-shadow(0 0 8px rgba(98, 0, 234, 0.3));
 }
@@ -105,7 +121,6 @@ body {
     align-items: center;
     justify-content: flex-end;
     flex: 1;
-    /* Takes up available space to help centering */
 }
 
 .user-menu-btn {
@@ -116,7 +131,6 @@ body {
     align-items: center;
     gap: 10px;
     padding: 4px 10px 4px 4px;
-    /* Smaller padding */
     border-radius: 30px;
     cursor: pointer;
     transition: all 0.2s;
@@ -130,7 +144,6 @@ body {
 
 .user-menu-btn img {
     width: 32px;
-    /* Smaller avatar */
     height: 32px;
     border-radius: 50%;
     object-fit: cover;
@@ -140,79 +153,96 @@ body {
 .user-menu-btn span {
     font-weight: 500;
     font-size: 13px;
-    /* Smaller text */
 }
 
-/* Main Navigation Card (Hidden by default) */
-.nav-main-menu {
-    position: absolute;
-    top: calc(100% + 15px);
-    left: 20px;
-    /* Aligned with left button */
-    width: 280px;
-    background: var(--nav-glass-bg);
-    backdrop-filter: blur(var(--nav-glass-blur));
-    -webkit-backdrop-filter: blur(var(--nav-glass-blur));
-    border: 1px solid var(--nav-glass-border);
-    border-radius: 24px;
-    padding: 20px;
+/* Expanded Content (The Grid) */
+.nav-content {
     opacity: 0;
-    visibility: hidden;
-    transform: translateY(-10px);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    z-index: 999;
+    transform: translateY(10px);
+    transition: all 0.3s ease 0.1s;
+    /* Slight delay */
+    padding: 10px 0 20px 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    /* 3 Columns */
+    gap: 15px;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    /* Scroll if needed */
 }
 
-.nav-main-menu.active {
+.navbar.expanded .nav-content {
     opacity: 1;
-    visibility: visible;
     transform: translateY(0);
 }
 
-.nav-menu-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
+/* Navigation Cards inside the Grid */
+.nav-grid-item {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 16px;
+    padding: 15px;
     text-decoration: none;
     color: var(--nav-text-color);
-    transition: background 0.2s;
-    font-size: 14px;
-    font-weight: 500;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: all 0.2s;
 }
 
-.nav-menu-item:hover {
-    background-color: var(--nav-item-hover);
+.nav-grid-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.1);
 }
 
-.nav-menu-item .material-icons {
-    font-size: 20px;
-    color: var(--nav-text-muted);
-}
-
-.nav-menu-item:hover .material-icons {
+.nav-grid-icon {
+    width: 36px;
+    height: 36px;
+    background: rgba(98, 0, 234, 0.1);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: var(--accent-color);
+    margin-bottom: 5px;
 }
 
-.nav-menu-header {
-    font-size: 11px;
-    text-transform: uppercase;
-    color: var(--nav-text-muted);
-    margin: 10px 0 5px 10px;
+.nav-grid-title {
     font-weight: 600;
-    letter-spacing: 0.5px;
+    font-size: 14px;
 }
 
-/* User Dropdown (Right Side) */
+.nav-grid-desc {
+    font-size: 12px;
+    color: var(--nav-text-muted);
+    line-height: 1.4;
+}
+
+/* User Dropdown (Absolute position relative to body or fixed, 
+   since navbar overflow is hidden, we might need a different strategy for user dropdown.
+   Actually, if overflow is hidden, the dropdown will be cut off.
+   Solution: Put user dropdown INSIDE the expanded content OR make it a modal/separate layer.
+   For now, let's keep it simple: User menu toggles a separate fixed element or we rely on the expansion.
+   
+   BETTER APPROACH for User Menu with Overflow Hidden:
+   The user menu should probably be part of the expanded grid OR we need to remove overflow:hidden after expansion.
+   But transition needs overflow hidden.
+   
+   Let's try: Remove overflow:hidden when expanded (via JS delay) or use a fixed dropdown.
+   Let's use a FIXED position dropdown for the user menu to escape the overflow.
+*/
+
 .user-dropdown {
-    position: absolute;
-    top: calc(100% + 15px);
-    right: 0;
+    position: fixed;
+    /* Fixed relative to viewport */
+    top: 80px;
+    /* Below navbar */
+    right: 5%;
+    /* Approximate */
+    margin-right: max(0px, calc((100% - 1000px) / 2));
+    /* Align with max-width container */
     background: var(--nav-glass-bg);
     backdrop-filter: blur(var(--nav-glass-blur));
     -webkit-backdrop-filter: blur(var(--nav-glass-blur));
@@ -223,8 +253,8 @@ body {
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
     display: none;
     flex-direction: column;
-    overflow: hidden;
-    transform-origin: top right;
+    z-index: 1001;
+    /* Above navbar */
 }
 
 .user-dropdown.active {
@@ -260,11 +290,6 @@ body {
     margin: 8px 0;
 }
 
-.logout-item:hover {
-    background-color: rgba(207, 102, 121, 0.15);
-    color: #ff5252;
-}
-
 @keyframes scaleIn {
     from {
         opacity: 0;
@@ -284,9 +309,21 @@ body {
         padding: 0 15px;
     }
 
+    .nav-content {
+        grid-template-columns: 1fr;
+        /* Stack on mobile */
+        height: auto;
+        max-height: 400px;
+    }
+
+    :root {
+        --nav-height-expanded: 450px;
+        /* Taller for mobile stack */
+    }
+
     .nav-brand span {
-        display: none;
-        /* Hide text on mobile if needed, or keep small */
+        display: block;
+        /* Keep visible */
     }
 
     .user-menu-btn span {

@@ -13,11 +13,7 @@ fetch('/api/profile?username=' + username)
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            if (data.user.role === 'admin') {
-                document.getElementById('adminBtn').style.display = 'block';
-            } else {
-                document.getElementById('homeBtn').onclick = () => window.location.href = 'technician.html';
-            }
+            // Role check handled by navbar.js
         }
         loadCategories();
     })

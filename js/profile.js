@@ -26,13 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const user = data.user;
 
                     // Role-based UI
-                    if (user.role !== 'admin') {
-                        const adminBtn = document.getElementById('adminInterfaceBtn');
-                        if (adminBtn) adminBtn.style.display = 'none';
-
-                        const homeBtn = document.getElementById('homeBtn');
-                        if (homeBtn) homeBtn.onclick = () => window.location.href = 'technician.html';
-                    }
+                    // Role-based UI handled by navbar.js
 
                     // Update View
                     setText('viewLastname', user.lastname);

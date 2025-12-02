@@ -9,23 +9,44 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/lightbox.css">
+    <link rel="stylesheet" href="css/navbar.css">
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 
 </head>
 
 <body>
     <nav class="navbar">
-        <div class="nav-brand">
-            <img src="images/logo.png" alt="Logo" class="nav-logo">
-            Technician Wiki
+        <div class="nav-left">
+            <div class="nav-brand">
+                <img src="images/logo.png" alt="Logo" class="nav-logo">
+                Technician Wiki
+            </div>
+            <div class="nav-links">
+                <button class="nav-btn" onclick="window.location.href='admin.html'">Accueil</button>
+                <button class="nav-btn" onclick="window.location.href='pdms.html'">PDMS</button>
+                <button class="nav-btn active" onclick="window.location.href='documentation.html'">Wiki</button>
+            </div>
         </div>
-        <div class="nav-links">
-            <button class="nav-btn" id="homeBtn" onclick="window.location.href='admin.html'">Accueil</button>
-            <button class="nav-btn" onclick="window.location.href='pdms.html'">PDMS</button>
-            <button class="nav-btn active">Documentation</button>
-            <button class="nav-btn" id="adminBtn" style="display: none;"
-                onclick="window.location.href='admin_interface.html'">Adminterface</button>
-            <button class="nav-btn" onclick="window.location.href='profile.html'">Votre Espace</button>
+        <div class="nav-right">
+            <div class="user-menu-container">
+                <button class="user-menu-btn" onclick="toggleUserMenu()">
+                    <img src="images/default-avatar.svg" id="navUserAvatar" alt="Avatar">
+                    <span id="navUserName">Chargement...</span>
+                    <span class="material-icons">arrow_drop_down</span>
+                </button>
+                <div class="user-dropdown" id="userDropdown">
+                    <a href="profile.html" class="dropdown-item">
+                        <span class="material-icons">person</span> Mon Profil
+                    </a>
+                    <a href="admin_interface.html" class="dropdown-item" id="navAdminLink" style="display: none;">
+                        <span class="material-icons">settings</span> Administration
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="#" onclick="logout()" class="dropdown-item logout-item">
+                        <span class="material-icons">logout</span> Déconnexion
+                    </a>
+                </div>
+            </div>
         </div>
     </nav>
 
@@ -189,6 +210,7 @@
         <img class="lightbox-content" id="lightbox-img">
     </div>
 
+    <script src="js/navbar.js"></script>
     <script src="js/documentation.js"></script>
 </body>
 

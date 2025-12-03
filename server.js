@@ -655,7 +655,53 @@ app.get('/api/install/check', (req, res) => {
     if (fs.existsSync('installed.lock')) {
         return res.json({ success: false, installed: true, message: 'Already installed' });
     }
-    res.json({ success: true, message: 'Ready to install' });
+
+    const checks = {
+        node: true,
+        writeRoot: false,
+        writeUploads: false,
+        packageJson: false,
+        nodeModules: false
+    };
+
+    // Check Root Write
+    try {
+        fs.accessSync('.', fs.constants.W_OK);
+        checks.writeRoot = true;
+    } catch (e) { }
+
+    // Check Uploads Dir
+    if (!fs.existsSync('uploads')) {
+        try {
+            fs.mkdirSync('uploads');
+        } catch (e) { }
+    }
+    try {
+        fs.accessSync('uploads', fs.constants.W_OK);
+        checks.writeUploads = true;
+    } catch (e) { }
+
+    // Check Dependencies
+    checks.packageJson = fs.existsSync('package.json');
+    checks.nodeModules = fs.existsSync('node_modules');
+    checks.missingDeps = [];
+
+    if (checks.packageJson) {
+        try {
+            const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            const dependencies = packageJson.dependencies || {};
+
+            for (const dep in dependencies) {
+                if (!fs.existsSync(path.join(__dirname, 'node_modules', dep))) {
+                    checks.missingDeps.push(dep);
+                }
+            }
+        } catch (e) {
+            checks.missingDeps.push('Erreur lecture package.json');
+        }
+    }
+
+    res.json({ success: true, checks });
 });
 
 // Test DB Connection

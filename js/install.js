@@ -21,16 +21,52 @@ function checkPrerequisites() {
         .then(data => {
             const nodeCheck = document.getElementById('checkNode');
             const writeCheck = document.getElementById('checkWrite');
+            const uploadsCheck = document.getElementById('checkUploads');
+            const depsCheck = document.getElementById('checkDeps');
             const btn = document.getElementById('btnStep1');
 
+            // Reset help
+            document.querySelectorAll('.check-help').forEach(el => el.style.display = 'none');
+
             if (data.success) {
-                nodeCheck.className = 'success';
-                nodeCheck.innerHTML = '<span class="material-icons">check_circle</span> Serveur Node.js actif';
+                const checks = data.checks;
 
-                writeCheck.className = 'success';
-                writeCheck.innerHTML = '<span class="material-icons">check_circle</span> Droits d\'écriture OK';
+                // Helper to set status
+                const setStatus = (el, success, text, helpId) => {
+                    if (success) {
+                        el.className = 'success';
+                        el.innerHTML = `<span class="material-icons">check_circle</span> ${text}`;
+                    } else {
+                        el.className = 'error';
+                        el.innerHTML = `<span class="material-icons">error</span> ${text} <a href="#" onclick="toggleHelp('${helpId}'); return false;" style="color: #ff8a80; font-size: 12px; margin-left: 10px;">(Comment résoudre ?)</a>`;
+                    }
+                };
 
-                btn.disabled = false;
+                // Node Check
+                setStatus(nodeCheck, true, 'Serveur Node.js actif', 'helpNode');
+
+                // Write Root Check
+                setStatus(writeCheck, checks.writeRoot, checks.writeRoot ? 'Permissions d\'écriture (Racine)' : 'Pas de droits d\'écriture (Racine)', 'helpWrite');
+
+                // Uploads Check
+                setStatus(uploadsCheck, checks.writeUploads, checks.writeUploads ? 'Dossier Uploads (Accessible)' : 'Dossier Uploads (Inaccessible)', 'helpUploads');
+
+                // Dependencies Check
+                const depsOk = checks.nodeModules && checks.packageJson && (!checks.missingDeps || checks.missingDeps.length === 0);
+                setStatus(depsCheck, depsOk, depsOk ? 'Dépendances installées' : 'Dépendances manquantes', 'helpDeps');
+
+                if (!depsOk && checks.missingDeps && checks.missingDeps.length > 0) {
+                    const list = document.getElementById('missingDepsList');
+                    list.innerHTML = '<strong>Manquants :</strong> ' + checks.missingDeps.join(', ');
+                    // Auto-show help for deps if missing
+                    document.getElementById('helpDeps').style.display = 'block';
+                }
+
+                // Enable button only if all passed
+                if (checks.writeRoot && checks.writeUploads && depsOk) {
+                    btn.disabled = false;
+                }
+
             } else {
                 // If installed.lock exists, redirect
                 if (data.installed) {
@@ -46,7 +82,13 @@ function checkPrerequisites() {
             const nodeCheck = document.getElementById('checkNode');
             nodeCheck.className = 'error';
             nodeCheck.innerHTML = '<span class="material-icons">error</span> Serveur injoignable';
+            document.getElementById('helpNode').style.display = 'block';
         });
+}
+
+function toggleHelp(id) {
+    const el = document.getElementById(id);
+    el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
 
 document.getElementById('dbForm').addEventListener('submit', (e) => {

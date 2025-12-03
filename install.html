@@ -29,11 +29,36 @@
             <div id="step1" class="step-content active">
                 <h2>Vérification du système</h2>
                 <p>Nous vérifions que votre serveur est prêt à accueillir l'application.</p>
-                <ul class="check-list" id="prerequisitesList">
+                <ul class="check-list">
                     <li id="checkNode" class="pending"><span class="material-icons">hourglass_empty</span> Node.js
                         (Serveur actif)</li>
-                    <li id="checkWrite" class="pending"><span class="material-icons">hourglass_empty</span> Droits
-                        d'écriture</li>
+                    <div id="helpNode" class="check-help">
+                        <strong>Solution :</strong> Assurez-vous que Node.js est bien installé et lancé.<br>
+                        Commande : <code>node server.js</code>
+                    </div>
+
+                    <li id="checkWrite" class="pending"><span class="material-icons">hourglass_empty</span> Permissions
+                        d'écriture (Racine)</li>
+                    <div id="helpWrite" class="check-help">
+                        <strong>Solution :</strong> Le serveur doit pouvoir créer des fichiers.<br>
+                        Linux/Mac : <code>chmod -R 755 .</code><br>
+                        Windows : Vérifiez les propriétés du dossier (Lecture seule).
+                    </div>
+
+                    <li id="checkUploads" class="pending"><span class="material-icons">hourglass_empty</span> Dossier
+                        Uploads</li>
+                    <div id="helpUploads" class="check-help">
+                        <strong>Solution :</strong> Créez un dossier nommé <code>uploads</code> à la racine et
+                        donnez-lui les droits d'écriture.
+                    </div>
+
+                    <li id="checkDeps" class="pending"><span class="material-icons">hourglass_empty</span> Dépendances
+                        (node_modules)</li>
+                    <div id="helpDeps" class="check-help">
+                        <strong>Solution :</strong> Des librairies sont manquantes.<br>
+                        Lancez la commande : <code>npm install</code><br>
+                        <div id="missingDepsList" style="margin-top: 5px; color: #ff5252; font-size: 12px;"></div>
+                    </div>
                 </ul>
                 <div class="actions">
                     <button class="btn-primary" onclick="goToStep(2)" id="btnStep1" disabled>Continuer</button>

@@ -131,17 +131,14 @@ function loadProcess(process, searchQuery = null) {
     const container = document.getElementById('processViewer');
 
     // Header with Edit Button
-    let headerControls = '';
-    if (process.content !== undefined && process.content !== null) {
-        headerControls = `
-            <button id="editBtn" class="btn-secondary" onclick="enableEditMode()" style="display: flex; align-items: center; gap: 5px;">
-                <span class="material-icons" style="font-size: 16px;">edit</span> Modifier
-            </button>
-            <button id="saveBtn" class="btn-primary" onclick="saveContent()" style="display: none; align-items: center; gap: 5px;">
-                <span class="material-icons" style="font-size: 16px;">save</span> Enregistrer
-            </button>
-        `;
-    }
+    let headerControls = `
+        <button id="editBtn" class="btn-secondary" onclick="enableEditMode()" style="display: flex; align-items: center; gap: 5px;">
+            <span class="material-icons" style="font-size: 16px;">edit</span> Modifier
+        </button>
+        <button id="saveBtn" class="btn-primary" onclick="saveContent()" style="display: none; align-items: center; gap: 5px;">
+            <span class="material-icons" style="font-size: 16px;">save</span> Enregistrer
+        </button>
+    `;
 
     let authorInfo = '';
     if (process.author_name) {
@@ -168,42 +165,37 @@ function loadProcess(process, searchQuery = null) {
         </div>
     `;
 
-    if (process.content) {
-        // Render HTML Content
-        let displayContent = process.content;
+    // 1. Render HTML Content (Always present, even if empty, to allow editing)
+    let displayContent = process.content || '';
 
-        // Highlight search query if present
-        if (searchQuery) {
-            const regex = new RegExp(`(${searchQuery})`, 'gi');
-            displayContent = displayContent.replace(regex, '<span class="search-highlight" style="background-color: yellow; color: black; font-weight: bold;">$1</span>');
-        }
+    // Highlight search query if present
+    if (searchQuery && displayContent) {
+        const regex = new RegExp(`(${searchQuery})`, 'gi');
+        displayContent = displayContent.replace(regex, '<span class="search-highlight" style="background-color: yellow; color: black; font-weight: bold;">$1</span>');
+    }
 
-        contentHTML += `
-        <div id="content-display" class="ql-snow">
-            <div class="ql-editor" style="padding: 0; border: none;">
-                ${displayContent}
-            </div>
+    contentHTML += `
+    <div id="content-display" class="ql-snow">
+        <div class="ql-editor" style="padding: 0; border: none;">
+            ${displayContent}
         </div>
-        <div id="editor-wrapper" style="display: none; border-radius: 4px;">
-            <div id="editor-container" style="height: 500px;"></div>
-        </div>`;
-    } else if (process.file_path) {
-        // Render PDF via Iframe
+    </div>
+    <div id="editor-wrapper" style="display: none; border-radius: 4px; margin-bottom: 20px;">
+        <div id="editor-container" style="height: 300px;"></div>
+    </div>`;
+
+    // 2. Render PDF via Iframe (if exists)
+    if (process.file_path) {
         contentHTML += `
-        <div id="pdf-container" style="width: 100%; height: 800px; border: 1px solid #333; border-radius: 4px; overflow: hidden;">
+        <div id="pdf-container" style="width: 100%; height: 800px; border: 1px solid #333; border-radius: 4px; overflow: hidden; margin-top: 20px;">
             <iframe src="/uploads/${process.file_path}" width="100%" height="100%" style="border: none;">
                 <p>Votre navigateur ne supporte pas les iframes.</p>
             </iframe>
         </div>`;
-    } else {
-        // Empty State (New Article)
-        contentHTML += `
-        <div id="content-display" class="ql-snow" style="display: none;">
-            <div class="ql-editor" style="padding: 0; border: none;"></div>
-        </div>
-        <div id="editor-wrapper" style="border-radius: 4px;">
-            <div id="editor-container" style="height: 500px;"></div>
-        </div>`;
+    }
+
+    // If new (no content and no file), enable edit mode automatically
+    if (!process.content && !process.file_path) {
         setTimeout(() => enableEditMode(true), 100);
     }
 

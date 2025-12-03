@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Installation - Technician Wiki</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="css/install.css">
+</head>
+
+<body>
+    <div class="install-container">
+        <div class="install-header">
+            <img src="images/logo.png" alt="Logo" class="install-logo">
+            <h1>Installation de Technician Wiki</h1>
+        </div>
+
+        <div class="install-steps">
+            <div class="step active" id="stepIndicator1">1. Prérequis</div>
+            <div class="step" id="stepIndicator2">2. Base de données</div>
+            <div class="step" id="stepIndicator3">3. Installation</div>
+            <div class="step" id="stepIndicator4">4. Terminé</div>
+        </div>
+
+        <div class="install-content">
+            <!-- Step 1: Prerequisites -->
+            <div id="step1" class="step-content active">
+                <h2>Vérification du système</h2>
+                <p>Nous vérifions que votre serveur est prêt à accueillir l'application.</p>
+                <ul class="check-list" id="prerequisitesList">
+                    <li id="checkNode" class="pending"><span class="material-icons">hourglass_empty</span> Node.js
+                        (Serveur actif)</li>
+                    <li id="checkWrite" class="pending"><span class="material-icons">hourglass_empty</span> Droits
+                        d'écriture</li>
+                </ul>
+                <div class="actions">
+                    <button class="btn-primary" onclick="goToStep(2)" id="btnStep1" disabled>Continuer</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Database Config -->
+            <div id="step2" class="step-content">
+                <h2>Configuration de la Base de Données</h2>
+                <p>Entrez les informations de connexion à votre serveur MySQL.</p>
+                <form id="dbForm">
+                    <div class="input-group">
+                        <label>Hôte (Host)</label>
+                        <input type="text" id="dbHost" placeholder="localhost" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Utilisateur (User)</label>
+                        <input type="text" id="dbUser" placeholder="root" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Mot de passe</label>
+                        <input type="password" id="dbPass" placeholder="Laisser vide si aucun">
+                    </div>
+                    <div class="input-group">
+                        <label>Nom de la base</label>
+                        <input type="text" id="dbName" placeholder="technician_wiki" required>
+                    </div>
+                    <div class="actions">
+                        <button type="button" class="btn-secondary" onclick="goToStep(1)">Retour</button>
+                        <button type="submit" class="btn-primary">Tester la connexion</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Step 3: Installation -->
+            <div id="step3" class="step-content">
+                <h2>Installation en cours</h2>
+                <p>Veuillez patienter pendant que nous configurons le système.</p>
+                <div class="progress-log" id="installLog"></div>
+                <div class="actions">
+                    <button class="btn-primary" onclick="startInstall()" id="btnInstall">Lancer l'installation</button>
+                    <button class="btn-primary" onclick="goToStep(4)" id="btnStep3"
+                        style="display: none;">Suivant</button>
+                </div>
+            </div>
+
+            <!-- Step 4: Finish -->
+            <div id="step4" class="step-content">
+                <div class="success-message">
+                    <span class="material-icons success-icon">check_circle</span>
+                    <h2>Installation Terminée !</h2>
+                    <p>L'application a été installée avec succès.</p>
+                    <p class="warning-text">
+                        <span class="material-icons">warning</span>
+                        Pour des raisons de sécurité, cette page d'installation ne sera plus accessible.
+                    </p>
+                    <p><strong>Compte Administrateur par défaut :</strong><br>User: admin<br>Pass: admin</p>
+                </div>
+                <div class="actions">
+                    <a href="/" class="btn-primary">Accéder au site</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/install.js"></script>
+</body>
+
+</html>

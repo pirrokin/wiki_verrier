@@ -64,6 +64,14 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// Block install page if installed
+app.get('/install.html', (req, res, next) => {
+    if (fs.existsSync('installed.lock')) {
+        return res.status(403).send('Installation déjà effectuée. Supprimez installed.lock pour réinstaller.');
+    }
+    next();
+});
+
 // Login Endpoint
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
@@ -638,6 +646,126 @@ db.query(migrationAuthorIdQuery, (err, results) => {
 app.use((err, req, res, next) => {
     console.error('Unhandled Error:', err);
     res.status(500).json({ success: false, message: 'Internal Server Error: ' + err.message });
+});
+
+// --- Installation API ---
+
+// Check installation status
+app.get('/api/install/check', (req, res) => {
+    if (fs.existsSync('installed.lock')) {
+        return res.json({ success: false, installed: true, message: 'Already installed' });
+    }
+    res.json({ success: true, message: 'Ready to install' });
+});
+
+// Test DB Connection
+app.post('/api/install/test-db', (req, res) => {
+    const { host, user, pass } = req.body;
+    const connection = mysql.createConnection({ host, user, password: pass });
+
+    connection.connect((err) => {
+        if (err) return res.json({ success: false, message: err.message });
+        connection.end();
+        res.json({ success: true });
+    });
+});
+
+// Run Installation
+app.post('/api/install/run', (req, res) => {
+    if (fs.existsSync('installed.lock')) {
+        return res.status(403).json({ success: false, message: 'Already installed' });
+    }
+
+    const { host, user, pass, name } = req.body;
+
+    // 1. Connect to Server
+    const connection = mysql.createConnection({ host, user, password: pass });
+
+    connection.connect((err) => {
+        if (err) return res.json({ success: false, message: 'Connection failed: ' + err.message });
+
+        // 2. Create Database
+        connection.query(`CREATE DATABASE IF NOT EXISTS \`${name}\``, (err) => {
+            if (err) return res.json({ success: false, message: 'Create DB failed: ' + err.message });
+
+            // 3. Select Database
+            connection.changeUser({ database: name }, (err) => {
+                if (err) return res.json({ success: false, message: 'Select DB failed: ' + err.message });
+
+                // 4. Create Tables
+                const tables = [
+                    `CREATE TABLE IF NOT EXISTS users (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        username VARCHAR(255) NOT NULL UNIQUE,
+                        password VARCHAR(255) NOT NULL,
+                        role ENUM('admin', 'technician') DEFAULT 'technician',
+                        firstname VARCHAR(255),
+                        lastname VARCHAR(255),
+                        email VARCHAR(255),
+                        phone VARCHAR(50),
+                        address TEXT,
+                        birthdate DATE,
+                        gender ENUM('M', 'F', 'Other'),
+                        profile_picture VARCHAR(255),
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )`,
+                    `CREATE TABLE IF NOT EXISTS categories (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        name VARCHAR(255) NOT NULL UNIQUE
+                    )`,
+                    `CREATE TABLE IF NOT EXISTS processes (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        category_id INT,
+                        title VARCHAR(255) NOT NULL,
+                        content LONGTEXT,
+                        file_path VARCHAR(255),
+                        author_id INT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
+                    )`,
+                    `CREATE TABLE IF NOT EXISTS process_history (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        process_id INT NOT NULL,
+                        user_id INT NOT NULL,
+                        modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (process_id) REFERENCES processes(id) ON DELETE CASCADE,
+                        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                    )`
+                ];
+
+                let completed = 0;
+                let hasError = false;
+
+                tables.forEach(sql => {
+                    connection.query(sql, (err) => {
+                        if (hasError) return;
+                        if (err) {
+                            hasError = true;
+                            return res.json({ success: false, message: 'Table creation failed: ' + err.message });
+                        }
+                        completed++;
+                        if (completed === tables.length) {
+                            // 5. Create Admin User
+                            const adminSql = `INSERT IGNORE INTO users (username, password, role) VALUES ('admin', 'admin', 'admin')`;
+                            connection.query(adminSql, (err) => {
+                                if (err) return res.json({ success: false, message: 'Admin creation failed: ' + err.message });
+
+                                // 6. Write .env file
+                                const envContent = `DB_HOST=${host}\nDB_USER=${user}\nDB_PASSWORD=${pass}\nDB_NAME=${name}\nPORT=3000`;
+                                fs.writeFileSync('.env', envContent);
+
+                                // 7. Create Lock File
+                                fs.writeFileSync('installed.lock', 'Installation completed on ' + new Date().toISOString());
+
+                                connection.end();
+                                res.json({ success: true });
+                            });
+                        }
+                    });
+                });
+            });
+        });
+    });
 });
 
 // Start Server

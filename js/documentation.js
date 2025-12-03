@@ -188,12 +188,13 @@ function loadProcess(process, searchQuery = null) {
             <div id="editor-container" style="height: 500px;"></div>
         </div>`;
     } else if (process.file_path) {
-        // Render PDF
+        // Render PDF via Iframe
         contentHTML += `
-        <div id="pdf-render-container" style="display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%;">
-            <div id="pdf-loading" style="color: var(--text-secondary); margin-top: 20px;">Chargement du document...</div>
+        <div id="pdf-container" style="width: 100%; height: 800px; border: 1px solid #333; border-radius: 4px; overflow: hidden;">
+            <iframe src="/uploads/${process.file_path}" width="100%" height="100%" style="border: none;">
+                <p>Votre navigateur ne supporte pas les iframes.</p>
+            </iframe>
         </div>`;
-        setTimeout(() => renderPDF(`/uploads/${process.file_path}`), 0);
     } else {
         // Empty State (New Article)
         contentHTML += `

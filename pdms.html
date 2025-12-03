@@ -124,12 +124,16 @@
     <script type="module">
         import { initDarkVeil } from './js/dark-veil.js';
 
-        document.addEventListener('DOMContentLoaded', () => {
-            initDarkVeil('dark-veil-container', {
-                speed: 0.5,
-                noiseIntensity: 0.2, // Slight noise for texture
-                scanlineIntensity: 0.1 // Subtle scanlines
-            });
+        // Initialize immediately
+        initDarkVeil('dark-veil-container', {
+            speed: 0.5,
+            noiseIntensity: 0.2, // Slight noise for texture
+            scanlineIntensity: 0.1 // Subtle scanlines
+        });
+
+        // Add visible class to trigger fade-in
+        requestAnimationFrame(() => {
+            document.getElementById('dark-veil-container').classList.add('visible');
         });
     </script>
 </body>

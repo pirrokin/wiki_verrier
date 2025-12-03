@@ -1,38 +1,33 @@
-# Guide de Déploiement - Technician Wiki
+# Guide de Migration - Serveur Local (LAN)
 
-Ce guide vous explique comment déployer votre application sur un serveur Linux (Ubuntu recommandé).
+Ce guide explique comment migrer votre projet actuel vers un serveur local (ex: un vieux PC, un Raspberry Pi, ou un serveur d'entreprise) pour qu'il soit accessible sur votre réseau local.
 
-## 1. Prérequis
-- Un serveur VPS (ex: DigitalOcean, OVH, AWS) avec Ubuntu 20.04 ou 22.04.
-- Accès SSH au serveur (`ssh root@votre-ip`).
-- Un nom de domaine (optionnel, mais recommandé pour le HTTPS).
+## 1. Préparer le Serveur (La machine cible)
 
-## 2. Préparation du Serveur
+Avant de copier les fichiers, assurez-vous que le serveur a les logiciels nécessaires.
 
-Connectez-vous à votre serveur et mettez à jour les paquets :
+### Installer Node.js et MySQL
+Ouvrez un terminal sur le serveur et lancez :
+
 ```bash
+# Mettre à jour
 sudo apt update && sudo apt upgrade -y
-```
 
-### Installer Node.js (v18 ou v20)
-```bash
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+# Installer Node.js (v18 ou plus)
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
 sudo apt install -y nodejs
-```
 
-### Installer MySQL
-```bash
+# Installer MySQL
 sudo apt install -y mysql-server
-sudo mysql_secure_installation
-# Suivez les instructions pour sécuriser (définir un mot de passe root, supprimer les utilisateurs anonymes, etc.)
 ```
 
-### Créer la Base de Données et l'Utilisateur
-Connectez-vous à MySQL :
+### Configurer la Base de Données
+Connectez-vous à MySQL sur le serveur :
 ```bash
-sudo mysql -u root -p
+sudo mysql
 ```
-Exécutez les commandes SQL suivantes (remplacez `votre_mot_de_passe` par un mot de passe fort) :
+
+Créez la base de données et l'utilisateur (changez `votre_mot_de_passe`) :
 ```sql
 CREATE DATABASE technician_wiki;
 CREATE USER 'wiki_user'@'localhost' IDENTIFIED BY 'votre_mot_de_passe';
@@ -41,107 +36,100 @@ FLUSH PRIVILEGES;
 EXIT;
 ```
 
-## 3. Transfert de l'Application
+---
 
-La méthode recommandée est d'utiliser Git.
+## 2. Copier les Fichiers
 
-1.  **Sur votre PC local** : Assurez-vous que votre code est sur un dépôt (GitHub/GitLab).
-2.  **Sur le serveur** : Clonez le dépôt.
-    ```bash
-    cd /var/www
-    git clone https://github.com/votre-pseudo/projet_verrier.git
-    cd projet_verrier
-    ```
-    *(Alternative sans Git : Utilisez FileZilla ou `scp` pour copier les fichiers dans `/var/www/projet_verrier`)*.
+1.  **Sur votre ordinateur de développement** :
+    *   Prenez tout le dossier `projet_verrier`.
+    *   Copiez-le sur une clé USB ou transférez-le via le réseau vers le serveur.
+    *   *Note : Ne copiez pas le dossier `node_modules` si possible (c'est lourd et il vaut mieux le réinstaller proprement).*
 
-3.  **Installer les dépendances** :
-    ```bash
-    npm install
-    ```
+2.  **Sur le serveur** :
+    *   Placez le dossier où vous voulez (ex: `/home/votre_nom/projet_verrier` ou `/var/www/projet_verrier`).
 
-## 4. Configuration
+---
 
-1.  **Configurer les variables d'environnement** :
-    Copiez le fichier d'exemple et éditez-le.
-    ```bash
-    cp .env.example .env
-    nano .env
-    ```
-    Modifiez les valeurs pour correspondre à votre serveur :
-    ```ini
-    DB_HOST=localhost
-    DB_USER=wiki_user
-    DB_PASSWORD=votre_mot_de_passe
-    DB_NAME=technician_wiki
-    PORT=3000
-    ```
+## 3. Installation et Configuration
 
-2.  **Importer les données** :
-    Si vous avez un fichier `.sql` exporté de votre PC local (ex: `backup.sql`), importez-le :
-    ```bash
-    mysql -u wiki_user -p technician_wiki < backup.sql
-    ```
+Allez dans le dossier du projet sur le serveur :
+```bash
+cd /chemin/vers/projet_verrier
+```
 
-## 5. Lancement de l'Application (PM2)
+### Installer les dépendances
+```bash
+npm install
+```
 
-Utilisez PM2 pour garder l'application active en arrière-plan.
+### Configurer la connexion Base de Données
+Créez un fichier `.env` à la racine du projet :
+```bash
+nano .env
+```
+Collez-y ceci (avec le mot de passe défini à l'étape 1) :
+```ini
+DB_HOST=localhost
+DB_USER=wiki_user
+DB_PASSWORD=votre_mot_de_passe
+DB_NAME=technician_wiki
+PORT=3000
+```
+*Sauvegardez avec `Ctrl+O`, `Entrée`, puis quittez avec `Ctrl+X`.*
+
+### Importer vos données actuelles (Optionnel)
+Si vous voulez garder vos utilisateurs/articles actuels :
+1.  Sur votre PC dev, exportez la base : `mysqldump -u root -p technician_wiki > backup.sql`
+2.  Copiez ce fichier `backup.sql` sur le serveur.
+3.  Importez-le : `mysql -u wiki_user -p technician_wiki < backup.sql`
+
+---
+
+## 4. Lancer le Serveur
+
+### Test rapide
+Pour vérifier que tout marche :
+```bash
+node server.js
+```
+Si vous voyez `Server running at http://0.0.0.0:3000`, c'est gagné ! Faites `Ctrl+C` pour arrêter.
+
+### Lancement permanent (Recommandé)
+Pour que le site tourne tout le temps, même après un redémarrage, utilisez **PM2** :
 
 ```bash
+# Installer PM2
 sudo npm install -g pm2
+
+# Lancer le projet
 pm2 start server.js --name "wiki-app"
+
+# Figer la configuration pour le redémarrage
 pm2 save
 pm2 startup
-# Exécutez la commande affichée par pm2 startup pour activer le lancement au démarrage
+# (Exécutez la commande que pm2 vous affiche ensuite)
 ```
 
-## 6. Configuration du Proxy Inverse (Nginx)
+---
 
-Pour rendre le site accessible via le port 80 (HTTP) au lieu de 3000.
+## 5. Accéder au Site
 
-1.  **Installer Nginx** :
-    ```bash
-    sudo apt install -y nginx
-    ```
+Le site est maintenant accessible depuis n'importe quel ordinateur connecté au même réseau (WiFi/Câble).
 
-2.  **Configurer le site** :
-    Créez un fichier de configuration :
-    ```bash
-    sudo nano /etc/nginx/sites-available/wiki-app
-    ```
-    Collez ceci (remplacez `votre_domaine_ou_ip` par votre IP ou nom de domaine) :
-    ```nginx
-    server {
-        listen 80;
-        server_name votre_domaine_ou_ip;
+1.  **Trouver l'IP du serveur** :
+    Sur le serveur, tapez : `hostname -I`
+    (Exemple de résultat : `192.168.1.25`)
 
-        location / {
-            proxy_pass http://localhost:3000;
-            proxy_http_version 1.1;
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection 'upgrade';
-            proxy_set_header Host $host;
-            proxy_cache_bypass $http_upgrade;
-        }
-        
-        # Augmenter la taille limite d'upload (pour les images/PDF)
-        client_max_body_size 50M;
-    }
-    ```
+2.  **Accéder depuis un autre PC** :
+    Ouvrez un navigateur et tapez : `http://192.168.1.25:3000` (remplacez par l'IP trouvée).
 
-3.  **Activer le site** :
-    ```bash
-    sudo ln -s /etc/nginx/sites-available/wiki-app /etc/nginx/sites-enabled/
-    sudo nginx -t
-    sudo systemctl restart nginx
-    ```
+---
 
-## 7. Sécurisation (HTTPS) - Optionnel mais recommandé
+## Dépannage (Firewall)
 
-Si vous avez un nom de domaine :
+Si le site ne charge pas depuis un autre PC, c'est souvent le pare-feu. Ouvrez le port 3000 :
 
 ```bash
-sudo apt install -y certbot python3-certbot-nginx
-sudo certbot --nginx -d votre_domaine.com
+sudo ufw allow 3000/tcp
+sudo ufw reload
 ```
-
-Votre site est maintenant en ligne !

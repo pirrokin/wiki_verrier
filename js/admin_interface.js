@@ -66,6 +66,7 @@ function openDetailsModal(id) {
                 pwdInput.type = 'password';
                 pwdInput.value = '••••••••'; // Placeholder
                 pwdInput.disabled = true;
+                pwdInput.readOnly = true; // Reset readonly state
                 // No longer storing real password
 
                 // Clear existing buttons
@@ -98,6 +99,7 @@ function enablePasswordReset(resetBtn) {
     const pwdContainer = document.querySelector('.password-container');
 
     pwdInput.disabled = false;
+    pwdInput.readOnly = false; // Fix: Remove readonly as well
     pwdInput.value = ''; // Clear for new input
     pwdInput.placeholder = "Nouveau mot de passe";
     pwdInput.focus();

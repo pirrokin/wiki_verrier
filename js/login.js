@@ -13,6 +13,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const originalText = btn.innerText;
         btn.innerText = 'Connexion...';
 
+        // Clear previous error
+        const errorDiv = document.getElementById('loginError');
+        errorDiv.style.display = 'none';
+        errorDiv.innerText = '';
+
         // Send request to backend
         fetch('/api/login', {
             method: 'POST',
@@ -44,14 +49,11 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .catch(error => {
                 console.error('Error:', error);
-                btn.innerText = 'Erreur';
-                btn.style.backgroundColor = '#cf6679'; // Error red
-                setTimeout(() => {
-                    btn.innerText = originalText;
-                    btn.style.backgroundColor = '';
-                    btn.style.opacity = '1';
-                    alert('Échec de la connexion : ' + error.message);
-                }, 2000);
+                btn.innerText = originalText; // Reset button text immediately
+
+                // Show error message below password
+                errorDiv.innerText = 'Mot de passe ou identifiant erroné';
+                errorDiv.style.display = 'block';
             });
     });
 });

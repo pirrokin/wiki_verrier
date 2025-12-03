@@ -279,6 +279,16 @@ h1 {
     margin-bottom: 20px;
 }
 
+.error-message {
+    color: #ff5252;
+    font-size: 12px;
+    margin-top: -15px;
+    /* Pull it up a bit closer to input */
+    margin-bottom: 15px;
+    text-align: left;
+    display: none;
+}
+
 label {
     display: block;
     font-size: 12px;

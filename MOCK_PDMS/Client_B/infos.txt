@@ -1,0 +1,2 @@
+Identifiant : clientb@example.com
+mdp : secretB

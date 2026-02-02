@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clients Particuliers - Technician Wiki</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/navbar.css">
+    <link rel="stylesheet" href="css/dark-veil.css">
+    <style>
+        .client-list-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .page-title h1 {
+            color: white;
+            margin: 0;
+            font-size: 2rem;
+        }
+
+        .btn-add {
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            border: none;
+            padding: 10px 20px;
+            color: white;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s;
+        }
+
+        .btn-add:hover {
+            transform: translateY(-2px);
+        }
+
+        .client-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .client-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .client-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(99, 102, 241, 0.5);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .client-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .client-icon .material-icons {
+            color: #818cf8;
+            font-size: 24px;
+        }
+
+        .client-name {
+            color: white;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .client-info {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .client-info .material-icons {
+            font-size: 16px;
+            color: #64748b;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1e1e2e;
+            padding: 30px;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #818cf8;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn-cancel {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .password-toggle {
+            cursor: pointer;
+            color: #818cf8;
+            font-size: 0.8rem;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="dark-veil-container"></div>
+    <nav class="navbar">
+        <div class="nav-top-bar">
+            <div class="nav-left">
+                <button class="menu-toggle-btn" onclick="toggleMainMenu()">
+                    <span class="material-icons">apps</span>
+                </button>
+                <button class="back-btn" onclick="window.location.href='pdms.html'"
+                    style="background: none; border: none; color: rgba(255,255,255,0.7); cursor: pointer; margin-left: 15px; display: flex; align-items: center; gap: 5px;">
+                    <span class="material-icons">arrow_back</span> Retour
+                </button>
+            </div>
+
+            <div class="nav-center">
+                <a href="admin.html" class="nav-brand">
+                    <img src="images/logo.png" alt="Logo" class="nav-logo">
+                    <span>Technician Wiki</span>
+                </a>
+            </div>
+
+            <div class="nav-right">
+                <button class="user-menu-btn" onclick="toggleUserMenu()">
+                    <img src="images/default-avatar.svg" id="navUserAvatar" alt="Avatar">
+                    <span id="navUserName">...</span>
+                    <span class="material-icons">arrow_drop_down</span>
+                </button>
+            </div>
+        </div>
+        <!-- Same nav content as others -->
+        <div class="nav-content">
+            <a href="kyocera.html" class="nav-grid-item">
+                <div class="nav-grid-icon"><span class="material-icons">print</span></div>
+                <div class="nav-grid-title">Kyocera</div>
+            </a>
+            <a href="pdms.html" class="nav-grid-item">
+                <div class="nav-grid-icon"><span class="material-icons">storage</span></div>
+                <div class="nav-grid-title">PDMS</div>
+            </a>
+            <a href="documentation.html" class="nav-grid-item">
+                <div class="nav-grid-icon"><span class="material-icons">menu_book</span></div>
+                <div class="nav-grid-title">Wiki</div>
+            </a>
+        </div>
+    </nav>
+
+    <!-- User Dropdown -->
+    <div class="user-dropdown" id="userDropdown">
+        <a href="profile.html" class="dropdown-item"><span class="material-icons">person</span> Mon Profil</a>
+        <a href="#" onclick="logout()" class="dropdown-item logout-item"><span class="material-icons">logout</span>
+            Déconnexion</a>
+    </div>
+
+    <div class="client-list-container">
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Clients Particuliers</h1>
+                <p style="color: #94a3b8;">Liste des clients du serveur PDMS</p>
+            </div>
+            <button class="btn-add" onclick="openModal()">
+                <span class="material-icons">add</span>
+                Nouveau Client
+            </button>
+        </div>
+
+        <div id="clientsGrid" class="client-grid">
+            <!-- JS will populate this -->
+            <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #94a3b8;">
+                <span class="material-icons is-spinning">sync</span> Chargement...
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Client Modal -->
+    <div class="modal" id="createClientModal">
+        <div class="modal-content">
+            <h2 style="color: white; margin-bottom: 20px;">Nouveau Client</h2>
+            <form id="createClientForm">
+                <div class="form-group">
+                    <label>Nom du Client (Dossier)</label>
+                    <input type="text" id="clientName" required placeholder="Ex: Jean Dupont">
+                </div>
+                <div class="form-group">
+                    <label>Identifiant / Email</label>
+                    <input type="email" id="clientEmail" required placeholder="email@exemple.com">
+                </div>
+                <div class="form-group">
+                    <label>Mot de passe</label>
+                    <input type="text" id="clientPassword" required placeholder="123456">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal()">Annuler</button>
+                    <button type="submit" class="btn-add">Créer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/navbar.js"></script>
+    <script src="js/pdms_individuals.js"></script>
+    <script type="module">
+        import { initDarkVeil } from './js/dark-veil.js';
+        initDarkVeil('dark-veil-container', { speed: 0.5 });
+        document.getElementById('dark-veil-container').classList.add('visible');
+    </script>
+</body>
+
+</html>

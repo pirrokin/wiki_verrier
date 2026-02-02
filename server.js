@@ -814,6 +814,28 @@ app.post('/api/install/run', (req, res) => {
     });
 });
 
+// --- PDMS Integration ---
+const PdmsService = require('./js/pdmsService');
+
+// Get all PDMS clients
+app.get('/api/pdms/clients', (req, res) => {
+    PdmsService.getClients()
+        .then(clients => res.json({ success: true, clients }))
+        .catch(err => res.status(500).json({ success: false, message: err.message }));
+});
+
+// Create new PDMS client
+app.post('/api/pdms/clients', (req, res) => {
+    const { name, email, password } = req.body;
+    if (!name || !email || !password) {
+        return res.status(400).json({ success: false, message: 'Missing fields' });
+    }
+
+    PdmsService.createClient(name, email, password)
+        .then(result => res.json({ success: true, message: 'Client created' }))
+        .catch(err => res.status(500).json({ success: false, message: err.message }));
+});
+
 // Start Server
 app.listen(port, '0.0.0.0', () => {
     console.log(`Server running at http://0.0.0.0:${port}`);

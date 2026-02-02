@@ -498,9 +498,7 @@ function deleteProcess(id) {
 }
 
 // Add global window exposure if needed for inline onclicks that aren't modules
-window.toggleMainMenu = () => document.querySelector('.nav-content').classList.toggle('active');
-window.toggleUserMenu = () => document.getElementById('userDropdown').classList.toggle('active');
-window.logout = () => { localStorage.removeItem('username'); window.location.href = 'index.html'; };
+// Global window exposures for documentation-specific functions
 window.showCategories = showCategories;
 window.showDocuments = showDocuments;
 window.loadProcess = loadProcess;

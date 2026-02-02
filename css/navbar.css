@@ -35,7 +35,7 @@
     -webkit-backdrop-filter: blur(var(--nav-glass-blur));
     border: 1px solid var(--nav-glass-border);
     box-shadow: var(--nav-shadow);
-    z-index: 1000;
+    z-index: 9999;
     overflow: hidden;
     /* Hide content when collapsed */
     transition: height 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.4s ease;

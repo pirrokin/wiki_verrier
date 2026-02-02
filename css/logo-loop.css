@@ -1,0 +1,61 @@
+/* Logo Loop Container */
+.logo-loop-container {
+    mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
+    width: 60%;
+    /* Reduced width */
+    max-width: 800px;
+    margin: 0 auto 40px auto;
+    /* Centered */
+    overflow: hidden;
+    position: relative;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    /* Subtle separator */
+}
+
+.logo-loop-track {
+    display: flex;
+    gap: 4rem;
+    width: max-content;
+    animation: scroll 30s linear infinite;
+    /* Slower, smoother */
+    padding: 20px 0;
+}
+
+/* Logos */
+.logo-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 30px;
+    /* Slight adjust */
+    opacity: 0.7;
+    /* Force white color if logos are black usually */
+    filter: invert(1) brightness(2);
+    transition: all 0.3s;
+}
+
+
+.logo-item img {
+    height: 100%;
+    width: auto;
+    object-fit: contain;
+}
+
+.logo-item svg {
+    height: 100%;
+    width: auto;
+    fill: currentColor;
+}
+
+/* Animation */
+@keyframes scroll {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-50%);
+        /* Move exactly half the track length (1 set out of 2) */
+    }
+}

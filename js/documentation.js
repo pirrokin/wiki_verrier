@@ -246,7 +246,8 @@ function loadProcess(process, searchQuery = null) {
         </div>`;
     }
 
-    // Auto-edit for empty new docs
+    // Auto-edit for empty new docs (only if not a search result, to differenciate "empty" from "partial load")
+    // Actually, we should trust that if we are here, we have the full object thanks to the fetch fix below.
     if (!process.content && !process.file_path) {
         setTimeout(() => enableEditMode(true), 100);
     }
@@ -402,13 +403,27 @@ function renderSearchResults(results, query) {
     results.forEach(proc => {
         const item = document.createElement('div');
         item.className = 'doc-item';
-        item.onclick = () => loadProcess(proc, query);
+        item.onclick = () => {
+            // Fetch full details first because search results don't have full content
+            fetch(`/api/processes/${proc.id}`)
+                .then(r => r.json())
+                .then(d => {
+                    if (d.success) {
+                        loadProcess(d.process, query);
+                    } else {
+                        alert('Erreur: Impossible de charger le document.');
+                    }
+                });
+        };
+
+        const snippetHtml = proc.snippet ? `<div style="font-size:0.85rem; color:#94a3b8; margin-top:5px; font-style:italic;">"${proc.snippet}"</div>` : '';
 
         item.innerHTML = `
             <div class="doc-icon"><span class="material-icons">search</span></div>
             <div class="doc-info">
                 <div class="doc-title">${proc.title}</div>
                 <div class="doc-meta">Catégorie: ${proc.category_name}</div>
+                ${snippetHtml}
             </div>
         `;
         list.appendChild(item);
@@ -473,10 +488,22 @@ function submitProcess(formData) {
     fetch('/api/processes', { method: 'POST', body: formData })
         .then(r => r.json()).then(d => {
             if (d.success) {
+                // 1. Close modal immediately
                 closeModal('processModal');
-                showDocuments(parseInt(formData.get('category_id'))); // Reload doc list
-                // reload categories to update counts
-                fetch('/api/categories').then(r => r.json()).then(dd => { if (dd.success) allCategories = dd.categories; });
+
+                // 2. Fetch fresh data to get the new process
+                fetch('/api/categories')
+                    .then(r => r.json())
+                    .then(dd => {
+                        if (dd.success) {
+                            // 3. Update local cache
+                            allCategories = dd.categories;
+                            // 4. Refresh the current view
+                            showDocuments(parseInt(formData.get('category_id')));
+                            // 5. Show success message (optional but good UX)
+                            // showSuccessToast('Document créé !');
+                        }
+                    });
             }
         });
 }
@@ -492,7 +519,7 @@ function deleteCategory(id) {
 function deleteProcess(id) {
     if (confirm('Supprimer ce document ?')) {
         fetch(`/api/processes/${id}`, { method: 'DELETE' }).then(r => r.json()).then(d => {
-            if (d.success && currentCategoryId) showDocuments(currentCategoryId);
+            if (d.success) loadCategories();
         });
     }
 }

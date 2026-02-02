@@ -1,0 +1,326 @@
+/* Documentation Hub Styles */
+
+/* Main Container */
+.wiki-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    color: white;
+}
+
+/* 1. Header & Search */
+.wiki-header {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.wiki-title {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 30px;
+    background: linear-gradient(to right, #fff, #94a3b8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.search-wrapper {
+    position: relative;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.search-bar-hub {
+    width: 100%;
+    padding: 18px 25px;
+    padding-left: 55px;
+    font-size: 1.1rem;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50px;
+    color: white;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.search-bar-hub:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(99, 102, 241, 0.5);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+    transform: translateY(-2px);
+}
+
+.search-icon-hub {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-family: 'Material Icons';
+    font-size: 24px;
+    pointer-events: none;
+}
+
+/* 2. Categories Grid */
+.categories-section {
+    margin-bottom: 60px;
+    animation: fadeIn 0.5s ease-out;
+}
+
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 25px;
+}
+
+.category-card {
+    background: rgba(30, 41, 59, 0.7);
+    /* Darker slate */
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    /* Faint border */
+    border-radius: 16px;
+    padding: 30px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+}
+
+.category-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #6366f1, #a855f7);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.category-card:hover {
+    transform: translateY(-5px);
+    background: rgba(30, 41, 59, 0.9);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+    border-color: rgba(99, 102, 241, 0.3);
+}
+
+.category-card:hover::before {
+    opacity: 1;
+}
+
+.category-icon {
+    width: 64px;
+    height: 64px;
+    background: rgba(99, 102, 241, 0.1);
+    /* Indigo tint */
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    transition: transform 0.3s;
+}
+
+.category-card:hover .category-icon {
+    transform: scale(1.1);
+    background: rgba(99, 102, 241, 0.2);
+}
+
+.category-icon .material-icons {
+    font-size: 32px;
+    color: #818cf8;
+}
+
+.category-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 8px;
+}
+
+.category-count {
+    font-size: 0.9rem;
+    color: #94a3b8;
+}
+
+/* 3. Documents List (Hidden by default) */
+.documents-section {
+    display: none;
+    /* JS toggles this */
+    animation: slideUp 0.4s ease-out;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.back-btn-hub {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+
+.back-btn-hub:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+}
+
+.doc-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.doc-item {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.doc-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    /* Slightly lighter on hover */
+    border-color: rgba(99, 102, 241, 0.3);
+    transform: translateX(5px);
+}
+
+.doc-icon {
+    margin-right: 20px;
+    color: #94a3b8;
+}
+
+.doc-info {
+    flex-grow: 1;
+}
+
+.doc-title {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: white;
+    margin-bottom: 4px;
+}
+
+.doc-meta {
+    font-size: 0.85rem;
+    color: #64748b;
+    display: flex;
+    gap: 15px;
+}
+
+.doc-controls {
+    display: flex;
+    gap: 10px;
+    opacity: 0;
+    /* Hidden until hover */
+    transition: opacity 0.2s;
+}
+
+.doc-item:hover .doc-controls {
+    opacity: 1;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Viewer Modal Override */
+.viewer-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 2000;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.viewer-modal-overlay.active {
+    display: flex;
+}
+
+.viewer-modal-content {
+    background: #0f172a;
+    /* Dark Slate */
+    width: 100%;
+    max-width: 1000px;
+    height: 90vh;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.viewer-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.viewer-body {
+    padding: 40px;
+    overflow-y: auto;
+    height: 100%;
+}

@@ -234,7 +234,7 @@ function loadProcess(process, searchQuery = null) {
             ${displayContent}
         </div>
     </div>
-    <div id="editor-wrapper" style="display: none; background: white; color: black; border-radius: 8px;">
+    <div id="editor-wrapper" style="display: none; background: #1e293b; color: white; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
         <div id="editor-container" style="height: 400px;"></div>
     </div>`;
 

@@ -27,50 +27,7 @@ body {
 }
 
 /* Navbar */
-.navbar {
-    background-color: var(--nav-bg);
-    padding: 1rem 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #333;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
-
-.nav-brand {
-    font-weight: 700;
-    font-size: 1.2rem;
-    color: var(--accent-color);
-}
-
-.nav-links {
-    display: flex;
-    gap: 20px;
-}
-
-.nav-btn {
-    background: none;
-    border: none;
-    color: var(--text-secondary);
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    padding: 8px 16px;
-    border-radius: 6px;
-    transition: all 0.2s;
-}
-
-.nav-btn:hover {
-    color: var(--text-primary);
-    background-color: rgba(255, 255, 255, 0.05);
-}
-
-.nav-btn.active {
-    color: var(--text-primary);
-    background-color: var(--accent-color);
-}
+/* Navbar styles moved to css/navbar.css */
 
 /* Dashboard Content */
 .dashboard-container {

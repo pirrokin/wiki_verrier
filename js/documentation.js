@@ -187,6 +187,7 @@ function openProcessModalForCurrentCategory() {
 
 function loadProcess(process, searchQuery = null) {
     currentProcessId = process.id;
+    window.currentProcess = process; // Store full object for edit mode
     const overlay = document.getElementById('viewerModal');
     const container = document.getElementById('processViewer');
 
@@ -294,8 +295,10 @@ function enableEditMode(isNew = false) {
         }
     });
 
-    if (!isNew && displayDiv) {
-        quill.clipboard.dangerouslyPasteHTML(displayDiv.querySelector('.ql-editor').innerHTML);
+    if (!isNew) {
+        // Use raw content from memory to avoid saving search highlights or other view-only artifacts
+        const contentToLoad = window.currentProcess && window.currentProcess.content ? window.currentProcess.content : '';
+        quill.clipboard.dangerouslyPasteHTML(contentToLoad);
     }
 }
 

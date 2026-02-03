@@ -58,7 +58,14 @@ C'est la méthode la plus simple pour récupérer "que les données utiles" (le 
 
     > *Astuce : Si votre repo est privé, Git vous demandera votre utilisateur/token.*
 
-2.  **Installer les dépendances** :
+2.  **Créer le dossier d'uploads** (Git ne le copie pas s'il est vide) :
+    ```bash
+    mkdir uploads
+    chmod 777 uploads
+    ```
+    *Cela permet au site d'enregistrer les images et PDF.*
+
+3.  **Installer les dépendances** :
     ```bash
     sudo npm install
     ```

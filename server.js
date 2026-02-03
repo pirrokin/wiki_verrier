@@ -32,6 +32,14 @@ const upload = multer({
     limits: { fieldSize: 25 * 1024 * 1024 } // 25MB limit for rich text content (base64 images)
 });
 
+// Block install page if installed
+app.get('/install.html', (req, res, next) => {
+    if (fs.existsSync('installed.lock')) {
+        return res.status(403).send('Installation déjà effectuée. Supprimez installed.lock pour réinstaller.');
+    }
+    next();
+});
+
 // Middleware
 app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));

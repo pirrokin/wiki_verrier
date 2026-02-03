@@ -51,21 +51,28 @@ app.use('/uploads', express.static('uploads')); // Serve uploaded files explicit
 require('dotenv').config();
 
 // Database Connection
-const db = mysql.createConnection({
+// Database Connection Pool (Better stability and auto-reconnect)
+const db = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'technician_wiki'
+    database: process.env.DB_NAME || 'technician_wiki',
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
 });
 
-// Test DB Connection
-db.connect((err) => {
+// Test DB Connection (Pool doesn't connect immediately, but we can try a query)
+db.getConnection((err, connection) => {
     if (err) {
-        console.error('Error connecting to database:', err);
-        return;
+        console.error('Error connecting to database:', err.code); // Log error code
+    } else {
+        console.log('Connected to MySQL database (Pool)');
+        connection.release(); // Always release!
     }
-    console.log('Connected to MySQL database');
 });
+
+
 
 // Routes
 app.get('/', (req, res) => {

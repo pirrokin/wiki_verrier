@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Environment
+.env
+installed.lock
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# User Uploads (Keep the directory but ignore content if preferred, or keep content. 
+# Usually we ignore uploads in prod deployment unless it's initial seed data.)
+uploads/*
+!uploads/.gitkeep
+
+# IDEs
+.vscode/
+.idea/

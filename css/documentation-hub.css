@@ -94,50 +94,42 @@
     min-height: 200px;
 }
 
-.category-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #6366f1, #a855f7);
-    opacity: 0;
-    transition: opacity 0.3s;
-}
+/* Removed .category-card::before gradient */
 
+/* Removed .category-card::before gradient */
 .category-card:hover {
     transform: translateY(-5px);
-    background: rgba(30, 41, 59, 0.9);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
-    border-color: rgba(99, 102, 241, 0.3);
-}
-
-.category-card:hover::before {
-    opacity: 1;
+    background: rgba(255, 255, 255, 0.05);
+    /* Subtle light glass on hover */
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    border-color: rgba(255, 255, 255, 0.1);
 }
 
 .category-icon {
     width: 64px;
     height: 64px;
-    background: rgba(99, 102, 241, 0.1);
-    /* Indigo tint */
+    background: rgba(255, 255, 255, 0.05);
+    /* Neutral glass */
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     margin-bottom: 20px;
-    transition: transform 0.3s;
+    transition: all 0.3s;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .category-card:hover .category-icon {
     transform: scale(1.1);
-    background: rgba(99, 102, 241, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+    /* Slightly brighter on hover */
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
 .category-icon .material-icons {
     font-size: 32px;
-    color: #818cf8;
+    color: #e2e8f0;
+    /* Neutral bright grey */
 }
 
 .category-title {
@@ -289,8 +281,10 @@
 }
 
 .viewer-modal-content {
-    background: #0f172a;
-    /* Dark Slate */
+    background: rgba(15, 23, 42, 0.4);
+    /* High transparency to see Dark Veil */
+    backdrop-filter: blur(15px);
+    /* Strong blur to keep text readable */
     width: 100%;
     max-width: 1000px;
     height: 90vh;
@@ -323,4 +317,57 @@
     padding: 40px;
     overflow-y: auto;
     height: 100%;
+}
+
+/* --- Quill Editor Dark/Transparent Theme Overrides --- */
+
+/* Wrapper and Container */
+#editor-wrapper,
+#editor-container,
+.ql-container.ql-snow,
+.ql-editor {
+    background: transparent !important;
+    /* Force full transparency */
+    border: none !important;
+    /* Remove borders for a cleaner look */
+    font-family: 'Inter', sans-serif !important;
+}
+
+/* Toolbar */
+.ql-toolbar.ql-snow {
+    background: rgba(255, 255, 255, 0.05) !important;
+    /* Very subtle glass effect for toolbar */
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 8px !important;
+    margin-bottom: 15px !important;
+    /* Space between toolbar and text */
+}
+
+/* Text Color */
+.ql-editor,
+.ql-editor p,
+.ql-editor h1,
+.ql-editor h2,
+.ql-editor h3 {
+    color: #e2e8f0 !important;
+}
+
+/* Toolbar Icons */
+.ql-snow .ql-stroke {
+    stroke: #cbd5e1 !important;
+}
+
+.ql-snow .ql-fill {
+    fill: #cbd5e1 !important;
+}
+
+.ql-snow .ql-picker {
+    color: #cbd5e1 !important;
+}
+
+/* Toolbar Hover Effects */
+.ql-snow .ql-picker-options {
+    background-color: #1e293b !important;
+    color: #e2e8f0 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
 }

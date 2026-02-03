@@ -235,8 +235,8 @@ function loadProcess(process, searchQuery = null) {
             ${displayContent}
         </div>
     </div>
-    <div id="editor-wrapper" style="display: none; background: #1e293b; color: white; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
-        <div id="editor-container" style="height: 400px;"></div>
+    <div id="editor-wrapper" style="display: none; background: transparent; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; margin-top: 20px;">
+        <div id="editor-container" style="height: 400px; background: transparent;"></div>
     </div>`;
 
     // 2. Render PDF via Iframe

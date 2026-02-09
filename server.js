@@ -5,9 +5,12 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const multer = require('multer');
 const fs = require('fs');
+const cookieParser = require('cookie-parser');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 const port = 3000;
+const SECRET_KEY = process.env.JWT_SECRET || 'your-secret-key-change-it-in-prod';
 
 // Configure Multer for file uploads
 const storage = multer.diskStorage({
@@ -44,8 +47,28 @@ app.get('/install.html', (req, res, next) => {
 app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
-app.use(express.static('.')); // Serve static files from current directory
-app.use('/uploads', express.static('uploads')); // Serve uploaded files explicitly
+app.use(cookieParser()); // Enable cookie parsing
+
+// STATIC FILES SECURITY:
+// Do NOT serve everything (.) because it exposes admin_interface.html to everyone.
+// Instead, serve specific safe folders:
+app.use('/css', express.static('css'));
+app.use('/js', express.static('js'));
+app.use('/images', express.static('images'));
+app.use('/uploads', express.static('uploads'));
+app.use('/favicon.ico', express.static('favicon.ico'));
+
+// Security Middleware: Protect Routes
+const authenticateToken = (req, res, next) => {
+    const token = req.cookies.access_token;
+    if (!token) return res.sendStatus(401); // Unauthorized
+
+    jwt.verify(token, SECRET_KEY, (err, user) => {
+        if (err) return res.sendStatus(403); // Forbidden
+        req.user = user;
+        next();
+    });
+};
 
 // Database Connection (Placeholder - will need real credentials)
 require('dotenv').config();
@@ -74,20 +97,50 @@ db.getConnection((err, connection) => {
 
 
 
-// Routes
+// Public Pages
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Block install page if installed
-app.get('/install.html', (req, res, next) => {
-    if (fs.existsSync('installed.lock')) {
-        return res.status(403).send('Installation déjà effectuée. Supprimez installed.lock pour réinstaller.');
+// BLOCK SENSITIVE FILES (Source code, config, etc.)
+app.use((req, res, next) => {
+    const forbidden = [
+        '/server.js', '/package.json', '/package-lock.json',
+        '/.env', '/.env.example', '/installed.lock',
+        '/README.md', '/DEPLOY.md'
+    ];
+    if (forbidden.some(f => req.path.startsWith(f)) || req.path.includes('node_modules')) {
+        return res.status(403).send('Forbidden');
     }
     next();
 });
 
-// Login Endpoint
+// SERVE ALL OTHER STATIC FILES (HTML, etc.)
+// Put this AFTER specific protected routes so they take precedence
+app.use(express.static(__dirname));
+
+// Also keep explicit route for index just in case, though static handles it
+app.get('/index.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// PROTECTED Admin Interface
+app.get('/admin_interface.html', authenticateToken, (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin_interface.html'));
+});
+
+// Health Check (Public - for Login Page status)
+app.get('/api/health', (req, res) => {
+    db.query('SELECT 1', (err, results) => {
+        if (err) {
+            // DB is down
+            return res.status(503).json({ success: false, message: 'Database connection failed' });
+        }
+        res.json({ success: true, message: 'System healthy' });
+    });
+});
+
+// Login Endpoint (Generates JWT)
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
     console.log(`Login attempt for: ${username}`);
@@ -104,15 +157,33 @@ app.post('/api/login', (req, res) => {
         }
 
         if (results.length > 0) {
-            res.json({ success: true, message: 'Login successful', user: { username: results[0].username, role: results[0].role } });
+            const user = results[0];
+            // GENERATE TOKEN
+            const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, SECRET_KEY, { expiresIn: '8h' });
+
+            // SEND COOKIE (HttpOnly = Secure)
+            res.cookie('access_token', token, {
+                httpOnly: true,
+                secure: false, // Set to true in HTTPS
+                sameSite: 'strict',
+                maxAge: 8 * 60 * 60 * 1000 // 8 hours
+            });
+
+            res.json({ success: true, message: 'Login successful', user: { username: user.username, role: user.role } });
         } else {
             res.status(401).json({ success: false, message: 'Identifiant ou mot de passe incorrect' });
         }
     });
 });
 
-// Create User Endpoint
-app.post('/api/users', (req, res) => {
+// Logout Endpoint
+app.post('/api/logout', (req, res) => {
+    res.clearCookie('access_token');
+    res.json({ success: true, message: 'Logged out' });
+});
+
+// Create User Endpoint (PROTECTED)
+app.post('/api/users', authenticateToken, (req, res) => {
     const { username, password, role, creatorUsername } = req.body;
 
     if (!username || !password || !role) {
@@ -163,7 +234,8 @@ app.put('/api/users/:id/password', (req, res) => {
 });
 
 // Get All Users Endpoint
-app.get('/api/users', (req, res) => {
+// Get All Users Endpoint (PROTECTED)
+app.get('/api/users', authenticateToken, (req, res) => {
     const query = 'SELECT id, username, role, created_at FROM users';
     db.query(query, (err, results) => {
         if (err) return res.status(500).json({ success: false, message: 'DB Error' });
@@ -172,7 +244,8 @@ app.get('/api/users', (req, res) => {
 });
 
 // Delete User Endpoint
-app.delete('/api/users/:id', (req, res) => {
+// Delete User Endpoint (PROTECTED)
+app.delete('/api/users/:id', authenticateToken, (req, res) => {
     const userId = req.params.id;
 
     // First check if user is admin
@@ -832,22 +905,17 @@ app.post('/api/install/run', (req, res) => {
 // --- PDMS Integration ---
 const PdmsService = require('./js/pdmsService');
 
-// Get all PDMS clients
-app.get('/api/pdms/clients', (req, res) => {
-    PdmsService.getClients()
+// PDMS Routes (PROTECTED)
+app.get('/api/pdms/clients', authenticateToken, (req, res) => {
+    PdmsService.listClients()
         .then(clients => res.json({ success: true, clients }))
         .catch(err => res.status(500).json({ success: false, message: err.message }));
 });
 
-// Create new PDMS client
-app.post('/api/pdms/clients', (req, res) => {
-    const { name, email, password } = req.body;
-    if (!name || !email || !password) {
-        return res.status(400).json({ success: false, message: 'Missing fields' });
-    }
-
-    PdmsService.createClient(name, email, password)
-        .then(result => res.json({ success: true, message: 'Client created' }))
+app.post('/api/pdms/clients', authenticateToken, (req, res) => {
+    const { clientName } = req.body;
+    PdmsService.createClient(clientName)
+        .then(result => res.json({ success: true, ...result }))
         .catch(err => res.status(500).json({ success: false, message: err.message }));
 });
 

@@ -1,7 +1,25 @@
-// Retrieve username from localStorage
-const username = localStorage.getItem('username');
-if (!username) {
-    window.location.href = 'index.html';
+// Auth Check: Try to fetch users. If 401, redirect to login.
+fetch('/api/users')
+    .then(res => {
+        if (res.status === 401 || res.status === 403) {
+            window.location.href = 'index.html';
+        }
+        return res.json();
+    })
+    .catch(() => {
+        // If error, likely network or server down, but can't verify auth.
+        // Optional: redirect or show error.
+    });
+
+// Retrieve username from localStorage (for display only, not security)
+const username = localStorage.getItem('username') || 'Utilisateur';
+
+function logout() {
+    fetch('/api/logout', { method: 'POST' })
+        .then(() => {
+            localStorage.removeItem('username');
+            window.location.href = 'index.html';
+        });
 }
 
 // Modal Logic (Add User & Details)

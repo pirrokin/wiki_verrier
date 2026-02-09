@@ -115,9 +115,10 @@ function toggleMainMenu() {
 }
 
 function logout() {
-    if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
-        localStorage.removeItem('username');
-        localStorage.removeItem('role');
-        window.location.href = 'index.html';
-    }
+    fetch('/api/logout', { method: 'POST' })
+        .then(() => {
+            localStorage.removeItem('username');
+            localStorage.removeItem('role'); // Keep this as it was in the original and not explicitly removed.
+            window.location.href = 'index.html';
+        });
 }

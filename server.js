@@ -165,7 +165,7 @@ app.post('/api/login', (req, res) => {
             res.cookie('access_token', token, {
                 httpOnly: true,
                 secure: false, // Set to true in HTTPS
-                sameSite: 'strict',
+                sameSite: 'lax',
                 maxAge: 8 * 60 * 60 * 1000 // 8 hours
             });
 
@@ -711,24 +711,38 @@ db.query(migrationProfilePicQuery, (err, results) => {
     }
 });
 
-// Ensure 'author_id' column exists in processes table
-const migrationAuthorIdQuery = `
+// Ensure 'clients' table exists (PDMS Migration)
+const migrationClientsQuery = `
     SELECT count(*) as count 
-    FROM information_schema.columns 
+    FROM information_schema.tables
     WHERE table_schema = 'technician_wiki' 
-    AND table_name = 'processes' 
-    AND column_name = 'author_id';
+    AND table_name = 'clients';
 `;
 
-db.query(migrationAuthorIdQuery, (err, results) => {
+db.query(migrationClientsQuery, (err, results) => {
     if (!err && results[0].count == 0) {
-        console.log('Migrating DB: Adding author_id column to processes table...');
-        db.query('ALTER TABLE processes ADD COLUMN author_id INT', (err) => {
+        console.log('Migrating DB: Creating clients table...');
+        const createClientsTable = `
+            CREATE TABLE clients (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                email VARCHAR(255),
+                password VARCHAR(255),
+                folder_path VARCHAR(500),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                UNIQUE KEY unique_name (name)
+            )
+        `;
+        db.query(createClientsTable, (err) => {
             if (err) console.error('Migration failed:', err);
-            else console.log('Migration successful.');
+            else console.log('Migration successful: clients table created.');
         });
     }
 });
+
+// Initialize PDMS Service with DB
+
 
 // Global Error Handler
 app.use((err, req, res, next) => {
@@ -904,17 +918,31 @@ app.post('/api/install/run', (req, res) => {
 
 // --- PDMS Integration ---
 const PdmsService = require('./js/pdmsService');
+PdmsService.init(db);
 
 // PDMS Routes (PROTECTED)
 app.get('/api/pdms/clients', authenticateToken, (req, res) => {
-    PdmsService.listClients()
+    PdmsService.getClients()
         .then(clients => res.json({ success: true, clients }))
         .catch(err => res.status(500).json({ success: false, message: err.message }));
 });
 
+// Sync Endpoint (Trigger Import)
+app.post('/api/pdms/sync', authenticateToken, (req, res) => {
+    PdmsService.syncClients()
+        .then(stats => res.json({ success: true, message: 'Sync complete', stats }))
+        .catch(err => res.status(500).json({ success: false, message: err.message }));
+});
+
 app.post('/api/pdms/clients', authenticateToken, (req, res) => {
-    const { clientName } = req.body;
-    PdmsService.createClient(clientName)
+    const { name, email, password } = req.body;
+
+    // Validate input
+    if (!name || !email || !password) {
+        return res.status(400).json({ success: false, message: 'All fields (name, email, password) are required' });
+    }
+
+    PdmsService.createClient(name, email, password)
         .then(result => res.json({ success: true, ...result }))
         .catch(err => res.status(500).json({ success: false, message: err.message }));
 });

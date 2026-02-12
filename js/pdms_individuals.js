@@ -8,7 +8,13 @@ function loadClients() {
     const grid = document.getElementById('clientsGrid');
 
     fetch('/api/pdms/clients')
-        .then(res => res.json())
+        .then(res => {
+            if (res.status === 401 || res.status === 403) {
+                window.location.href = 'index.html';
+                throw new Error('Unauthorized');
+            }
+            return res.json();
+        })
         .then(data => {
             if (data.success) {
                 renderClients(data.clients);
@@ -17,6 +23,7 @@ function loadClients() {
             }
         })
         .catch(err => {
+            if (err.message === 'Unauthorized') return; // Redirecting...
             console.error(err);
             grid.innerHTML = `<div style="color: #ef4444;">Erreur de connexion au serveur</div>`;
         });

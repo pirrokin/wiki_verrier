@@ -318,10 +318,17 @@
                 <h1>Clients Particuliers</h1>
                 <p style="color: #94a3b8;">Liste des clients du serveur PDMS</p>
             </div>
-            <button class="btn-add" onclick="openModal()">
-                <span class="material-icons">add</span>
-                Nouveau Client
-            </button>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-add" onclick="syncPDMS()"
+                    style="background: linear-gradient(135deg, #10b981, #3b82f6);">
+                    <span class="material-icons">sync</span>
+                    Synchroniser
+                </button>
+                <button class="btn-add" onclick="openModal()">
+                    <span class="material-icons">add</span>
+                    Nouveau Client
+                </button>
+            </div>
         </div>
 
         <div id="clientsGrid" class="client-grid">
@@ -358,7 +365,7 @@
     </div>
 
     <script src="js/navbar.js"></script>
-    <script src="js/pdms_individuals.js"></script>
+    <script src="js/pdms_individuals.js?v=2"></script>
     <script type="module">
         import { initDarkVeil } from './js/dark-veil.js';
         initDarkVeil('dark-veil-container', { speed: 0.5 });
